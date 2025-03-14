@@ -1,0 +1,23 @@
+# Compiled output
+/bin
+/obj
+
+# Dependency management
+packages/
+*.suo
+*.dgspec
+*.user
+*.lock.json
+
+# Visual Studio files
+.vs/
+*.csproj.user
+*.sln.docstates
+*.pfx
+
+# Build results
+/Release
+/Debug
+
+# Other
+_*
