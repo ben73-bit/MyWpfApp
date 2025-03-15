@@ -3,10 +3,23 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:WpfMvvmApp"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+            xmlns:local="clr-namespace:WpfMvvmApp"
+            xmlns:vm="clr-namespace:WpfMvvmApp.ViewModels"  
+            mc:Ignorable="d"
+            Title="MainWindow" Height="450" Width="800">
 
-    </Grid>
+    <Window.DataContext>
+        <vm:MainViewModel/>  <!-- Imposta il DataContext al ViewModel -->
+    </Window.DataContext>
+
+    <Grid>
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <TextBlock Text="Enter new username:" Margin="0,0,0,5"/>
+        <TextBox Text="{Binding NewUsername, UpdateSourceTrigger=PropertyChanged}" Width="200" Margin="0,0,0,5"/>
+        <TextBlock Text="{Binding UsernameValidationMessage}" Foreground="Red" HorizontalAlignment="Center" Margin="0,0,0,10"/> <!-- Aggiungi questo TextBlock -->
+        <Button Content="Update Username" Command="{Binding UpdateUsernameCommand}" Width="120"/>
+        <TextBlock Text="{Binding User.Username}" FontSize="24" HorizontalAlignment="Center" Margin="0,10,0,0"/>
+    </StackPanel>
+</Grid>
+
 </Window>
