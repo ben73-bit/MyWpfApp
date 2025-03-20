@@ -7,6 +7,7 @@ namespace WpfMvvmApp.ViewModels
     {
         private readonly Action<object?> _execute;
         private readonly Predicate<object?>? _canExecute;
+        private EventHandler? _canExecuteChanged; // Aggiungi questo campo
 
         public RelayCommand(Action<object?> execute, Predicate<object?>? canExecute = null)
         {
@@ -26,8 +27,19 @@ namespace WpfMvvmApp.ViewModels
 
         public event EventHandler? CanExecuteChanged
         {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
+            add {
+              _canExecuteChanged += value;
+              CommandManager.RequerySuggested += value;
+            }
+            remove {
+              _canExecuteChanged -= value;
+              CommandManager.RequerySuggested -= value;
+            }
+        }
+
+        public void RaiseCanExecuteChanged()
+        {
+          _canExecuteChanged?.Invoke(this, EventArgs.Empty);
         }
     }
 }
