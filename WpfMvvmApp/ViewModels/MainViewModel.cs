@@ -52,7 +52,7 @@ namespace WpfMvvmApp.ViewModels
                         OnPropertyChanged();
                     }
                 }
-                
+
                 // Informa il comando che lo stato di CanExecute potrebbe essere cambiato
                 if (UpdateUsernameCommand is RelayCommand command)
                 {
@@ -76,16 +76,16 @@ namespace WpfMvvmApp.ViewModels
 
         public ICommand UpdateUsernameCommand
         {
-            get 
-            { 
+            get
+            {
                 _updateUsernameCommand ??= new RelayCommand(UpdateUsername, CanUpdateUsername);
-                return _updateUsernameCommand; 
+                return _updateUsernameCommand;
             }
         }
 
         // Proprietà per la gestione dei contratti
         public ObservableCollection<ContractViewModel> Contracts { get; } = new ObservableCollection<ContractViewModel>();
-        
+
         public ContractViewModel? SelectedContract
         {
             get { return _selectedContract; }
@@ -93,27 +93,46 @@ namespace WpfMvvmApp.ViewModels
             {
                 if (_selectedContract != value)
                 {
+                    // Rimuovi l'handler degli eventi dal vecchio contratto
+                    if (_selectedContract != null)
+                        _selectedContract.PropertyChanged -= Contract_PropertyChanged;
+                    
                     _selectedContract = value;
+                    
+                    // Aggiungi l'handler degli eventi al nuovo contratto
+                    if (_selectedContract != null)
+                        _selectedContract.PropertyChanged += Contract_PropertyChanged;
+                    
                     OnPropertyChanged();
+                    
+                    // Notifica che lo stato del comando potrebbe essere cambiato
+                    InvalidateSaveCommand();
+                    
+                    // Mantieni anche il comportamento originale
+                    CommandManager.InvalidateRequerySuggested();
                 }
             }
         }
-        
+
         public ICommand AddNewContractCommand { get; }
-        
+
+        //Inizializza il command. Era questo il problema, si dichiarava la variabile ma non la si inizializzava.
+        public ICommand SaveContractCommand { get; private set; } = null!;
+
         public MainViewModel()
         {
             try
             {
                 // Inizializza l'utente
                 User = new User { Username = "Simone Benzi" };
-                
+
                 // Imposta il valore iniziale di NewUsername dopo aver inizializzato User
                 // Questa chiamata attiverà la validazione
                 NewUsername = User.Username;
-                
+
                 // Inizializza i command
                 AddNewContractCommand = new RelayCommand(AddNewContract);
+                SaveContractCommand = new RelayCommand(SaveContract, CanSaveContract); //Inizializza il command Save
 
                 // Inizializza i contratti di esempio
                 Contracts.Add(new ContractViewModel(new Contract { Company = "Azienda 1", ContractNumber = "Contratto 1", HourlyRate = 50, TotalHours = 100 }));
@@ -127,11 +146,32 @@ namespace WpfMvvmApp.ViewModels
             }
         }
 
+        // Metodo per ascoltare i cambiamenti nel contratto selezionato
+        private void Contract_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            // Quando qualsiasi proprietà del contratto cambia, invalidare il comando Save
+            InvalidateSaveCommand();
+        }
+
+        // Metodo di utilità per invalidare il comando Save
+        private void InvalidateSaveCommand()
+        {
+            if (SaveContractCommand is RelayCommand command)
+            {
+                command.RaiseCanExecuteChanged();
+            }
+        }
+
         private bool CanUpdateUsername(object? parameter)
         {
             return !string.IsNullOrWhiteSpace(NewUsername) &&
                    NewUsername.Length <= 20 &&
                    string.IsNullOrEmpty(UsernameValidationMessage);
+        }
+
+        private bool CanSaveContract(object? parameter)
+        {
+            return SelectedContract != null && SelectedContract.IsValid;
         }
 
         private void UpdateUsername(object? parameter)
@@ -147,12 +187,12 @@ namespace WpfMvvmApp.ViewModels
         private void AddNewContract(object? parameter)
         {
             // Creazione di un nuovo contratto
-            Contract newContract = new Contract 
-            { 
-                Company = "Nuova Azienda", 
-                ContractNumber = "Nuovo Contratto", 
-                HourlyRate = 0, 
-                TotalHours = 0 
+            Contract newContract = new Contract
+            {
+                Company = "Nuova Azienda",
+                ContractNumber = "Nuovo Contratto",
+                HourlyRate = 0,
+                TotalHours = 0
             };
 
             // Creazione di un nuovo contratto view model
@@ -160,6 +200,22 @@ namespace WpfMvvmApp.ViewModels
 
             // Aggiunta del contratto alla lista
             Contracts.Add(newContractViewModel);
+        }
+
+        //Salva contratto
+        private void SaveContract(object? parameter)
+        {
+            if (SelectedContract != null && SelectedContract.IsValid)
+            {
+                // In questo caso non facciamo altro che aggiornare le proprietà del contract view model.
+                // In un caso reale potremmo persistere i dati nel database.
+                
+                // Aggiunge un feedback di salvataggio avvenuto (opzionale)
+                Console.WriteLine($"Contratto {SelectedContract.ContractNumber} salvato con successo!");
+                
+                // Aggiorna il comando per la view
+                OnPropertyChanged(nameof(Contracts));
+            }
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;

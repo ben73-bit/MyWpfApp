@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -20,6 +21,14 @@ namespace WpfMvvmApp.ViewModels
                 {
                     _contract = value;
                     OnPropertyChanged();
+                    OnPropertyChanged(nameof(Company));
+                    OnPropertyChanged(nameof(ContractNumber));
+                    OnPropertyChanged(nameof(HourlyRate));
+                    OnPropertyChanged(nameof(TotalHours));
+                    OnPropertyChanged(nameof(BilledHours));
+                    OnPropertyChanged(nameof(StartDate));
+                    OnPropertyChanged(nameof(EndDate));
+                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
                 }
             }
         }
@@ -64,6 +73,119 @@ namespace WpfMvvmApp.ViewModels
                     }
                 }
                 return result;
+            }
+        }
+
+        // Nuova proprietà per verificare se il contratto è valido
+        public bool IsValid
+        {
+            get
+            {
+                if (Contract == null)
+                    return false;
+
+                // Verifica la validità di tutte le proprietà rilevanti
+                ValidationContext context = new(Contract);
+                List<ValidationResult> results = new();
+                return Validator.TryValidateObject(Contract, context, results, true);
+            }
+        }
+
+        public string Company
+        {
+            get { return Contract?.Company ?? ""; }
+            set
+            {
+                if (Contract != null)
+                {
+                    Contract.Company = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                }
+            }
+        }
+
+        public string ContractNumber
+        {
+            get { return Contract?.ContractNumber ?? ""; }
+            set
+            {
+                if (Contract != null)
+                {
+                    Contract.ContractNumber = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                }
+            }
+        }
+
+        public decimal HourlyRate
+        {
+            get { return Contract?.HourlyRate ?? 0; }
+            set
+            {
+                if (Contract != null)
+                {
+                    Contract.HourlyRate = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                }
+            }
+        }
+
+        public int TotalHours
+        {
+            get { return Contract?.TotalHours ?? 0; }
+            set
+            {
+                if (Contract != null)
+                {
+                    Contract.TotalHours = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                }
+            }
+        }
+
+        public int BilledHours
+        {
+            get { return Contract?.BilledHours ?? 0; }
+            set
+            {
+                if (Contract != null)
+                {
+                    Contract.BilledHours = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                }
+            }
+        }
+
+        public DateTime StartDate
+        {
+            get { return Contract?.StartDate ?? DateTime.MinValue; }
+            set
+            {
+                if (Contract != null)
+                {
+                    Contract.StartDate = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                }
+            }
+        }
+
+        public DateTime EndDate
+        {
+            get { return Contract?.EndDate ?? DateTime.MinValue; }
+            set
+            {
+                if (Contract != null)
+                {
+                    Contract.EndDate = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                }
             }
         }
     }
