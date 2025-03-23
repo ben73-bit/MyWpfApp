@@ -47,32 +47,71 @@ namespace WpfMvvmApp.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        // Explicit IDataErrorInfo implementation
+        // Implementazione IDataErrorInfo migliorata
         string IDataErrorInfo.Error => null!;
 
         string IDataErrorInfo.this[string columnName]
         {
             get
             {
-                if (string.IsNullOrEmpty(columnName))
+                if (string.IsNullOrEmpty(columnName) || Contract == null)
                     return string.Empty;
 
-                string result = string.Empty;
-                if (Contract != null) // Controllo di null
+                // Mappa le proprietà del ViewModel alle proprietà del modello Contract
+                string propertyToValidate = columnName;
+                object valueToValidate;
+
+                // Ottieni il valore corretto in base alla proprietà
+                switch (columnName)
                 {
-                    ValidationContext context = new(Contract) { MemberName = columnName };
-                    List<ValidationResult> results = new();
-                    bool isValid = Validator.TryValidateProperty(
-                        Contract.GetType().GetProperty(columnName)?.GetValue(Contract),
-                        context,
-                        results
-                    );
-                    if (!isValid)
-                    {
-                        result = string.Join(Environment.NewLine, results.Select(r => r.ErrorMessage));
-                    }
+                    case nameof(Company):
+                        valueToValidate = Contract.Company;
+                        propertyToValidate = nameof(Contract.Company);
+                        break;
+                    case nameof(ContractNumber):
+                        valueToValidate = Contract.ContractNumber;
+                        propertyToValidate = nameof(Contract.ContractNumber);
+                        break;
+                    case nameof(HourlyRate):
+                        valueToValidate = Contract.HourlyRate;
+                        propertyToValidate = nameof(Contract.HourlyRate);
+                        break;
+                    case nameof(TotalHours):
+                        valueToValidate = Contract.TotalHours;
+                        propertyToValidate = nameof(Contract.TotalHours);
+                        break;
+                    case nameof(BilledHours):
+                        valueToValidate = Contract.BilledHours;
+                        propertyToValidate = nameof(Contract.BilledHours);
+                        break;
+                    case nameof(StartDate):
+                        valueToValidate = Contract.StartDate;
+                        propertyToValidate = nameof(Contract.StartDate);
+                        break;
+                    case nameof(EndDate):
+                        valueToValidate = Contract.EndDate;
+                        propertyToValidate = nameof(Contract.EndDate);
+                        break;
+                    default:
+                        return string.Empty;
                 }
-                return result;
+
+                // Valida la proprietà
+                ValidationContext context = new ValidationContext(Contract) { MemberName = propertyToValidate };
+                List<ValidationResult> results = new List<ValidationResult>();
+
+                bool isValid = Validator.TryValidateProperty(
+                    valueToValidate,
+                    context,
+                    results
+                );
+
+                if (!isValid && results.Count > 0)
+                {
+                    return string.Join(Environment.NewLine, results.Select(r => r.ErrorMessage));
+                }
+
+                return string.Empty;
             }
         }
 
@@ -85,8 +124,8 @@ namespace WpfMvvmApp.ViewModels
                     return false;
 
                 // Verifica la validità di tutte le proprietà rilevanti
-                ValidationContext context = new(Contract);
-                List<ValidationResult> results = new();
+                ValidationContext context = new ValidationContext(Contract);
+                List<ValidationResult> results = new List<ValidationResult>();
                 return Validator.TryValidateObject(Contract, context, results, true);
             }
         }
@@ -100,7 +139,7 @@ namespace WpfMvvmApp.ViewModels
                 {
                     Contract.Company = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                    OnPropertyChanged(nameof(IsValid));
                 }
             }
         }
@@ -114,7 +153,7 @@ namespace WpfMvvmApp.ViewModels
                 {
                     Contract.ContractNumber = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                    OnPropertyChanged(nameof(IsValid));
                 }
             }
         }
@@ -128,7 +167,7 @@ namespace WpfMvvmApp.ViewModels
                 {
                     Contract.HourlyRate = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                    OnPropertyChanged(nameof(IsValid));
                 }
             }
         }
@@ -142,7 +181,8 @@ namespace WpfMvvmApp.ViewModels
                 {
                     Contract.TotalHours = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                    OnPropertyChanged(nameof(IsValid));
+                    
                 }
             }
         }
@@ -156,7 +196,7 @@ namespace WpfMvvmApp.ViewModels
                 {
                     Contract.BilledHours = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                    OnPropertyChanged(nameof(IsValid));
                 }
             }
         }
@@ -170,7 +210,7 @@ namespace WpfMvvmApp.ViewModels
                 {
                     Contract.StartDate = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                    OnPropertyChanged(nameof(IsValid));
                 }
             }
         }
@@ -184,7 +224,7 @@ namespace WpfMvvmApp.ViewModels
                 {
                     Contract.EndDate = value;
                     OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                    OnPropertyChanged(nameof(IsValid));
                 }
             }
         }
