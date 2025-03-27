@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 using WpfMvvmApp.Models;
-using WpfMvvmApp.ViewModels; // Aggiungi questa direttiva
 
 namespace WpfMvvmApp.ViewModels
 {
@@ -96,8 +95,11 @@ namespace WpfMvvmApp.ViewModels
                 {
                     _selectedContract = value;
                     OnPropertyChanged();
+
+                    
+OnPropertyChanged(nameof(LessonViewModel));
                     //Informiamo anche gli eventi in caso di salvataggio o cambio selezione
-                    CommandManager.InvalidateRequerySuggested();
+CommandManager.InvalidateRequerySuggested();
                 }
             }
         }
@@ -122,8 +124,7 @@ namespace WpfMvvmApp.ViewModels
                 SaveContractCommand = new RelayCommand(SaveContract, CanSaveContract); //Inizializza il command Save
 
                 // Inizializza i contratti di esempio
-                Contracts.Add(new ContractViewModel(new Contract { Company = "Azienda 1", ContractNumber = "Contratto 1", HourlyRate = 50, TotalHours = 100 }));
-                Contracts.Add(new ContractViewModel(new Contract { Company = "Azienda 2", ContractNumber = "Contratto 2", HourlyRate = 60, TotalHours = 120 }));
+               LoadContracts(); 
             }
             catch (Exception ex)
             {
@@ -132,8 +133,6 @@ namespace WpfMvvmApp.ViewModels
                 throw;
             }
         }
-
-        //Nuova proprietà per controllare il comando
 
         private bool CanUpdateUsername(object? parameter)
         {
@@ -193,6 +192,11 @@ namespace WpfMvvmApp.ViewModels
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+         private void LoadContracts()
+        {
+            Contracts.Add(new ContractViewModel(new Contract { Company = "Azienda 1", ContractNumber = "Contratto 1", HourlyRate = 50, TotalHours = 100 }));
+            Contracts.Add(new ContractViewModel(new Contract { Company = "Azienda 2", ContractNumber = "Contratto 2", HourlyRate = 60, TotalHours = 120 }));
         }
     }
 }

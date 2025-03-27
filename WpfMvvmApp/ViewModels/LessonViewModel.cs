@@ -6,6 +6,7 @@ namespace WpfMvvmApp.ViewModels
 {
     public class LessonViewModel : INotifyPropertyChanged
     {
+        //Aggiunta di un event handler
         public event PropertyChangedEventHandler? PropertyChanged;
 
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
