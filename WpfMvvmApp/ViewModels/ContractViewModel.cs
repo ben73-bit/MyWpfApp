@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel; // Aggiunto
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -10,9 +11,9 @@ namespace WpfMvvmApp.ViewModels
 {
     public class ContractViewModel : INotifyPropertyChanged, IDataErrorInfo
     {
-        private Contract? _contract; // Il campo può essere null
+        private Contract? _contract;
 
-        public Contract? Contract // La proprietà può essere null
+        public Contract? Contract
         {
             get { return _contract; }
             set
@@ -28,16 +29,16 @@ namespace WpfMvvmApp.ViewModels
                     OnPropertyChanged(nameof(BilledHours));
                     OnPropertyChanged(nameof(StartDate));
                     OnPropertyChanged(nameof(EndDate));
-                    OnPropertyChanged(nameof(IsValid)); // Notifica che IsValid è cambiata
+                    OnPropertyChanged(nameof(IsValid));
                 }
             }
         }
 
-        public ContractViewModel(Contract? contract) // Il parametro può essere null
+        public ObservableCollection<Lesson> Lessons { get; } = new ObservableCollection<Lesson>(); // Aggiunto
+
+        public ContractViewModel(Contract? contract)
         {
             _contract = contract;
-            //Non lancio più l'eccezione per non bloccare il programma
-            //Contract = contract ?? throw new ArgumentNullException(nameof(contract));
         }
 
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -47,7 +48,6 @@ namespace WpfMvvmApp.ViewModels
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        // Implementazione IDataErrorInfo migliorata
         string IDataErrorInfo.Error => null!;
 
         string IDataErrorInfo.this[string columnName]
@@ -57,46 +57,24 @@ namespace WpfMvvmApp.ViewModels
                 if (string.IsNullOrEmpty(columnName) || Contract == null)
                     return string.Empty;
 
-                // Mappa le proprietà del ViewModel alle proprietà del modello Contract
                 string propertyToValidate = columnName;
-                object valueToValidate;
+                object? valueToValidate = null; // Inizializza a null
 
                 // Ottieni il valore corretto in base alla proprietà
-                switch (columnName)
+                var propertyInfo = Contract.GetType().GetProperty(columnName);
+                if (propertyInfo != null)
                 {
-                    case nameof(Company):
-                        valueToValidate = Contract.Company;
-                        propertyToValidate = nameof(Contract.Company);
-                        break;
-                    case nameof(ContractNumber):
-                        valueToValidate = Contract.ContractNumber;
-                        propertyToValidate = nameof(Contract.ContractNumber);
-                        break;
-                    case nameof(HourlyRate):
-                        valueToValidate = Contract.HourlyRate;
-                        propertyToValidate = nameof(Contract.HourlyRate);
-                        break;
-                    case nameof(TotalHours):
-                        valueToValidate = Contract.TotalHours;
-                        propertyToValidate = nameof(Contract.TotalHours);
-                        break;
-                    case nameof(BilledHours):
-                        valueToValidate = Contract.BilledHours;
-                        propertyToValidate = nameof(Contract.BilledHours);
-                        break;
-                    case nameof(StartDate):
-                        valueToValidate = Contract.StartDate;
-                        propertyToValidate = nameof(Contract.StartDate);
-                        break;
-                    case nameof(EndDate):
-                        valueToValidate = Contract.EndDate;
-                        propertyToValidate = nameof(Contract.EndDate);
-                        break;
-                    default:
-                        return string.Empty;
+                    valueToValidate = propertyInfo.GetValue(Contract);
+                    propertyToValidate = propertyInfo.Name; // Usa il nome effettivo della proprietà del modello
+                }
+                else
+                {
+                     // Potrebbe essere una proprietà del ViewModel, non del Model
+                     // Gestisci questo caso se necessario, altrimenti restituisci stringa vuota
+                     return string.Empty;
                 }
 
-                // Valida la proprietà
+
                 ValidationContext context = new ValidationContext(Contract) { MemberName = propertyToValidate };
                 List<ValidationResult> results = new List<ValidationResult>();
 
@@ -115,15 +93,12 @@ namespace WpfMvvmApp.ViewModels
             }
         }
 
-        // Nuova proprietà per verificare se il contratto è valido
         public bool IsValid
         {
             get
             {
                 if (Contract == null)
                     return false;
-
-                // Verifica la validità di tutte le proprietà rilevanti
                 ValidationContext context = new ValidationContext(Contract);
                 List<ValidationResult> results = new List<ValidationResult>();
                 return Validator.TryValidateObject(Contract, context, results, true);
@@ -135,7 +110,7 @@ namespace WpfMvvmApp.ViewModels
             get { return Contract?.Company ?? ""; }
             set
             {
-                if (Contract != null)
+                if (Contract != null && Contract.Company != value)
                 {
                     Contract.Company = value;
                     OnPropertyChanged();
@@ -149,7 +124,7 @@ namespace WpfMvvmApp.ViewModels
             get { return Contract?.ContractNumber ?? ""; }
             set
             {
-                if (Contract != null)
+                if (Contract != null && Contract.ContractNumber != value)
                 {
                     Contract.ContractNumber = value;
                     OnPropertyChanged();
@@ -163,7 +138,7 @@ namespace WpfMvvmApp.ViewModels
             get { return Contract?.HourlyRate ?? 0; }
             set
             {
-                if (Contract != null)
+                if (Contract != null && Contract.HourlyRate != value)
                 {
                     Contract.HourlyRate = value;
                     OnPropertyChanged();
@@ -177,12 +152,11 @@ namespace WpfMvvmApp.ViewModels
             get { return Contract?.TotalHours ?? 0; }
             set
             {
-                if (Contract != null)
+                if (Contract != null && Contract.TotalHours != value)
                 {
                     Contract.TotalHours = value;
                     OnPropertyChanged();
                     OnPropertyChanged(nameof(IsValid));
-                    
                 }
             }
         }
@@ -192,7 +166,7 @@ namespace WpfMvvmApp.ViewModels
             get { return Contract?.BilledHours ?? 0; }
             set
             {
-                if (Contract != null)
+                if (Contract != null && Contract.BilledHours != value)
                 {
                     Contract.BilledHours = value;
                     OnPropertyChanged();
@@ -206,7 +180,7 @@ namespace WpfMvvmApp.ViewModels
             get { return Contract?.StartDate ?? DateTime.MinValue; }
             set
             {
-                if (Contract != null)
+                if (Contract != null && Contract.StartDate != value)
                 {
                     Contract.StartDate = value;
                     OnPropertyChanged();
@@ -220,7 +194,7 @@ namespace WpfMvvmApp.ViewModels
             get { return Contract?.EndDate ?? DateTime.MinValue; }
             set
             {
-                if (Contract != null)
+                if (Contract != null && Contract.EndDate != value)
                 {
                     Contract.EndDate = value;
                     OnPropertyChanged();
