@@ -193,15 +193,18 @@ namespace WpfMvvmApp.ViewModels
 
         //Salva contratto
         private void SaveContract(object? parameter)
-        {
-            //In questo caso non facciamo altro che aggiornare le proprietà del contract view model.
-            //In un caso reale potremmo persistere i dati nel database.
-            if (SelectedContract != null)
-            {
-                // Aggiorna il comando per la view
-                OnPropertyChanged(nameof(Contracts));
-            }
-        }
+{
+     if (SelectedContract != null && SelectedContract.IsValid) // Ricontrolla la validità
+     {
+         // Il modello è già aggiornato dal binding bidirezionale.
+         // Qui implementeremo la logica di persistenza in futuro.
+
+         System.Windows.MessageBox.Show($"Contract '{SelectedContract.ContractNumber}' saved (in memory).", "Save Successful", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+
+         // Rimuoviamo la chiamata superflua a OnPropertyChanged(nameof(Contracts))
+         // OnPropertyChanged(nameof(Contracts));
+     }
+}
 
         public event PropertyChangedEventHandler? PropertyChanged;
 

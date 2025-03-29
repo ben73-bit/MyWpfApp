@@ -37,11 +37,11 @@
         <ListView Grid.Row="1" ItemsSource="{Binding Contracts}" SelectedItem="{Binding SelectedContract, Mode=TwoWay}" Margin="5" Grid.Column="0">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Company" DisplayMemberBinding="{Binding Contract.Company}" Width="100"/>
-                    <GridViewColumn Header="Contract Number" DisplayMemberBinding="{Binding Contract.ContractNumber}" Width="100"/>
-                    <GridViewColumn Header="Hourly Rate" DisplayMemberBinding="{Binding Contract.HourlyRate}" Width="80"/>
-                    <GridViewColumn Header="Total Hours" DisplayMemberBinding="{Binding Contract.TotalHours}" Width="70"/>
-                    <GridViewColumn Header="Billed Hours" DisplayMemberBinding="{Binding Contract.BilledHours}" Width="70"/>
+                    <GridViewColumn Header="Company" DisplayMemberBinding="{Binding Company}" Width="100"/>
+                    <GridViewColumn Header="Contract Number" DisplayMemberBinding="{Binding ContractNumber}" Width="100"/>
+                    <GridViewColumn Header="Hourly Rate" DisplayMemberBinding="{Binding HourlyRate}" Width="80"/>
+                    <GridViewColumn Header="Total Hours" DisplayMemberBinding="{Binding TotalHours}" Width="70"/>
+                    <GridViewColumn Header="Billed Hours" DisplayMemberBinding="{Binding BilledHours}" Width="70"/>
                 </GridView>
             </ListView.View>
         </ListView>
