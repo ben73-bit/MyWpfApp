@@ -1,42 +1,37 @@
+// WpfMvvmApp/Models/Contract.cs
 using System;
+using System.Collections.Generic; // Aggiunto per List<>
 using System.ComponentModel.DataAnnotations;
+using WpfMvvmApp.ValidationAttributes; // Assumendo che DateRangeAttribute sia qui
 
 namespace WpfMvvmApp.Models
 {
     public class Contract
     {
-        [Required(ErrorMessage = "Company is required.")]
-        public required string Company { get; set; }       // Azienda committente
+        [Required(ErrorMessage = "Company name is required.")]
+        public string Company { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Contract Number is required.")]
-        public required string ContractNumber { get; set; }  // Numero contratto
+        [Required(ErrorMessage = "Contract number is required.")]
+        public string ContractNumber { get; set; } = string.Empty;
 
-        [Range(0.01, double.MaxValue, ErrorMessage = "Hourly Rate must be greater than 0.")]
-        public decimal HourlyRate { get; set; }             // Compenso orario
+        [Range(0.01, 10000, ErrorMessage = "Hourly rate must be positive.")]
+        public decimal HourlyRate { get; set; }
 
-        [Range(1, int.MaxValue, ErrorMessage = "Total Hours must be greater than 0.")]
-        public int TotalHours { get; set; }                // Monte ore complessivo
+        [Range(1, int.MaxValue, ErrorMessage = "Total hours must be at least 1.")]
+        public int TotalHours { get; set; }
 
-        [Range(0, int.MaxValue, ErrorMessage = "Billed Hours cannot be negative.")]
-        public int BilledHours { get; set; }               // Ore fatturate
+        [Range(0, int.MaxValue, ErrorMessage = "Billed hours cannot be negative.")]
+        public int BilledHours { get; set; } // Questo potrebbe essere calcolato
 
-        [DateRange(ErrorMessage = "Start Date must be before End Date.")]
-        public DateTime StartDate { get; set; }            // Data di inizio
+        [Required(ErrorMessage = "Start date is required.")]
+        public DateTime StartDate { get; set; } = DateTime.Today;
 
-        public DateTime EndDate { get; set; }              // Data di fine
-    }
+        [Required(ErrorMessage = "End date is required.")]
+        [DateRange(nameof(StartDate), ErrorMessage = "End date must be after start date.")]
+        public DateTime EndDate { get; set; } = DateTime.Today.AddMonths(1);
 
-    // Custom attribute per la validazione delle date
-    public class DateRangeAttribute : ValidationAttribute
-    {
-        protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
-        {
-            var instance = validationContext.ObjectInstance as Contract;
-            if (instance != null && instance.StartDate > instance.EndDate)
-            {
-                return new ValidationResult(ErrorMessage);
-            }
-            return ValidationResult.Success;
-        }
+        // NUOVO: Lista delle lezioni associate a questo contratto
+        // Inizializzata per evitare NullReferenceException
+        public List<Lesson> Lessons { get; set; } = new List<Lesson>();
     }
 }
