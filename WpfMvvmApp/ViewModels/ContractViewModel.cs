@@ -41,9 +41,9 @@ namespace WpfMvvmApp.ViewModels
                     OnPropertyChanged(nameof(StartDate));
                     OnPropertyChanged(nameof(EndDate));
                     OnPropertyChanged(nameof(IsValid));
-                    LoadLessons();
+                    LoadLessons(); // Carica le lezioni E notifica le ore calcolate
                     ResetLessonInputFields();
-                    IsEditingLesson = false; // Assicura reset stato modifica
+                    IsEditingLesson = false;
                     _lessonToEdit = null;
                 }
             }
@@ -53,7 +53,20 @@ namespace WpfMvvmApp.ViewModels
         public string Company { get => Contract?.Company ?? ""; set { if (Contract != null && Contract.Company != value) { Contract.Company = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsValid)); } } }
         public string ContractNumber { get => Contract?.ContractNumber ?? ""; set { if (Contract != null && Contract.ContractNumber != value) { Contract.ContractNumber = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsValid)); } } }
         public decimal HourlyRate { get => Contract?.HourlyRate ?? 0; set { if (Contract != null && Contract.HourlyRate != value) { Contract.HourlyRate = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsValid)); } } }
-        public int TotalHours { get => Contract?.TotalHours ?? 0; set { if (Contract != null && Contract.TotalHours != value) { Contract.TotalHours = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsValid)); } } }
+        public int TotalHours
+        {
+            get => Contract?.TotalHours ?? 0;
+            set
+            {
+                if (Contract != null && Contract.TotalHours != value)
+                {
+                    Contract.TotalHours = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsValid));
+                    NotifyCalculatedHoursChanged(); // Le ore residue dipendono da TotalHours
+                }
+            }
+        }
         public int BilledHours { get => Contract?.BilledHours ?? 0; set { if (Contract != null && Contract.BilledHours != value) { Contract.BilledHours = value; OnPropertyChanged(); /* TODO: Aggiornare IsValid? */ } } }
         public DateTime StartDate { get => Contract?.StartDate ?? DateTime.MinValue; set { if (Contract != null && Contract.StartDate != value) { Contract.StartDate = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsValid)); } } }
         public DateTime EndDate { get => Contract?.EndDate ?? DateTime.MinValue; set { if (Contract != null && Contract.EndDate != value) { Contract.EndDate = value; OnPropertyChanged(); OnPropertyChanged(nameof(IsValid)); } } }
@@ -76,39 +89,36 @@ namespace WpfMvvmApp.ViewModels
             {
                 if (SetProperty(ref _isEditingLesson, value))
                 {
-                    // Aggiorna CanExecute dei comandi quando lo stato di modifica cambia
                     (AddLessonCommand as RelayCommand)?.RaiseCanExecuteChanged();
                     (EditLessonCommand as RelayCommand)?.RaiseCanExecuteChanged();
                     (RemoveLessonCommand as RelayCommand)?.RaiseCanExecuteChanged();
                     (CancelEditLessonCommand as RelayCommand)?.RaiseCanExecuteChanged();
-                    // Aggiorna anche il comando Toggle
                     (ToggleLessonConfirmationCommand as RelayCommand)?.RaiseCanExecuteChanged();
                 }
             }
         }
+
+        // --- Proprietà Calcolate per le Ore ---
+        public double TotalInsertedHours => Lessons.Sum(l => l.Duration.TotalHours);
+        public double TotalConfirmedHours => Lessons.Where(l => l.IsConfirmed).Sum(l => l.Duration.TotalHours);
+        public double RemainingHours => (Contract?.TotalHours ?? 0) - TotalConfirmedHours;
 
         // --- Comandi ---
         public ICommand AddLessonCommand { get; }
         public ICommand EditLessonCommand { get; }
         public ICommand RemoveLessonCommand { get; }
         public ICommand CancelEditLessonCommand { get; }
-        // NUOVO: Comando per confermare/deconfermare
         public ICommand ToggleLessonConfirmationCommand { get; }
-        // RIMOSSO: ConfirmLessonCommand
 
         // Costruttore
         public ContractViewModel(Contract? contract)
         {
             _contract = contract;
-
-            // Inizializza comandi
             AddLessonCommand = new RelayCommand(ExecuteAddOrUpdateLesson, CanExecuteAddOrUpdateLesson);
-            EditLessonCommand = new RelayCommand(ExecuteEditLesson, CanExecuteEditOrRemoveLesson); // Usa CanExecute aggiornato
-            RemoveLessonCommand = new RelayCommand(ExecuteRemoveLesson, CanExecuteEditOrRemoveLesson); // Usa CanExecute aggiornato
+            EditLessonCommand = new RelayCommand(ExecuteEditLesson, CanExecuteEditOrRemoveLesson);
+            RemoveLessonCommand = new RelayCommand(ExecuteRemoveLesson, CanExecuteEditOrRemoveLesson);
             CancelEditLessonCommand = new RelayCommand(ExecuteCancelEditLesson, CanExecuteCancelEditLesson);
-            // NUOVO: Inizializza il comando Toggle
             ToggleLessonConfirmationCommand = new RelayCommand(ExecuteToggleLessonConfirmation, CanExecuteToggleLessonConfirmation);
-
             LoadLessons();
         }
 
@@ -118,9 +128,17 @@ namespace WpfMvvmApp.ViewModels
             Lessons.Clear();
             if (_contract?.Lessons != null)
             {
-                foreach (var lesson in _contract.Lessons.OrderBy(l => l.Date)) { Lessons.Add(lesson); }
+                foreach (var lesson in _contract.Lessons.OrderBy(l => l.Date))
+                {
+                    // RIMOSSO: Aggancio evento lesson.PropertyChanged -= Lesson_PropertyChanged;
+                    Lessons.Add(lesson);
+                }
             }
+            NotifyCalculatedHoursChanged(); // Notifica dopo aver caricato/pulito
         }
+
+        // RIMOSSO: Gestore Eventi Lesson_PropertyChanged
+        // private void Lesson_PropertyChanged(object? sender, PropertyChangedEventArgs e) { ... }
 
         // --- Implementazione INotifyPropertyChanged ---
         public event PropertyChangedEventHandler? PropertyChanged;
@@ -133,7 +151,7 @@ namespace WpfMvvmApp.ViewModels
         }
         // --- Fine Implementazione INotifyPropertyChanged ---
 
-        // --- Implementazione IDataErrorInfo (per validazione Contratto) ---
+        // --- Implementazione IDataErrorInfo ---
         string IDataErrorInfo.Error => GetValidationError();
         string IDataErrorInfo.this[string columnName] => GetValidationError(columnName);
         private string GetValidationError(string? propertyName = null)
@@ -141,10 +159,14 @@ namespace WpfMvvmApp.ViewModels
             if (Contract == null) return string.Empty;
             var context = new ValidationContext(Contract) { MemberName = propertyName };
             var results = new List<ValidationResult>();
-            bool isValid = string.IsNullOrEmpty(propertyName)
-                ? Validator.TryValidateObject(Contract, context, results, true)
-                : Validator.TryValidateProperty(Contract.GetType().GetProperty(propertyName!)?.GetValue(Contract), context, results);
-            if (isValid) return string.Empty;
+            bool isValid = false;
+            if (string.IsNullOrEmpty(propertyName)) { isValid = Validator.TryValidateObject(Contract, context, results, true); }
+            else
+            {
+                var propertyInfo = Contract.GetType().GetProperty(propertyName);
+                if (propertyInfo != null) { var value = propertyInfo.GetValue(Contract); isValid = Validator.TryValidateProperty(value, context, results); }
+            }
+            if (isValid || results.Count == 0) return string.Empty;
             return results.First().ErrorMessage ?? "Validation Error";
         }
         public bool IsValid => Contract != null && string.IsNullOrEmpty(GetValidationError());
@@ -154,55 +176,85 @@ namespace WpfMvvmApp.ViewModels
         private void ExecuteAddOrUpdateLesson(object? parameter)
         {
             if (Contract == null) return;
+            bool changed = false; // Flag per sapere se notificare
+
             if (IsEditingLesson && _lessonToEdit != null)
             {
-                _lessonToEdit.Date = NewLessonDate; _lessonToEdit.Duration = NewLessonDuration;
+                var oldDuration = _lessonToEdit.Duration;
+                _lessonToEdit.Date = NewLessonDate;
+                _lessonToEdit.Duration = NewLessonDuration;
+                // Se la durata è cambiata, dobbiamo notificare
+                if (oldDuration != _lessonToEdit.Duration) { changed = true; }
             }
             else
             {
                 var newLesson = new Lesson { Date = NewLessonDate, Duration = NewLessonDuration, Contract = Contract, IsConfirmed = false };
-                Lessons.Add(newLesson); Contract.Lessons.Add(newLesson);
+                // RIMOSSO: Aggancio evento newLesson.PropertyChanged += Lesson_PropertyChanged;
+                Lessons.Add(newLesson);
+                Contract.Lessons.Add(newLesson);
+                changed = true; // L'aggiunta cambia sempre i totali
             }
-            ResetLessonInputFields(); IsEditingLesson = false; _lessonToEdit = null;
+
+            if (changed) { NotifyCalculatedHoursChanged(); } // Notifica se aggiunto o durata cambiata
+
+            ResetLessonInputFields();
+            IsEditingLesson = false;
+            _lessonToEdit = null;
         }
-        private bool CanExecuteAddOrUpdateLesson(object? parameter) { return Contract != null && NewLessonDuration > TimeSpan.Zero && !IsEditingLesson; } // Aggiunto !IsEditingLesson
+        private bool CanExecuteAddOrUpdateLesson(object? parameter) { return Contract != null && NewLessonDuration > TimeSpan.Zero && !IsEditingLesson; }
 
         private void ExecuteEditLesson(object? parameter)
         { if (parameter is Lesson lessonToEdit) { IsEditingLesson = true; _lessonToEdit = lessonToEdit; NewLessonDate = lessonToEdit.Date; NewLessonDuration = lessonToEdit.Duration; } }
+
         private void ExecuteRemoveLesson(object? parameter)
         {
             if (parameter is Lesson lessonToRemove && Contract?.Lessons != null)
             {
                 var result = MessageBox.Show($"Remove lesson on {lessonToRemove.Date:d}?", "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (result == MessageBoxResult.Yes) { Lessons.Remove(lessonToRemove); Contract.Lessons.Remove(lessonToRemove); /* TODO: Aggiornare BilledHours? */ }
+                if (result == MessageBoxResult.Yes)
+                {
+                    // RIMOSSO: Sgancio evento lessonToRemove.PropertyChanged -= Lesson_PropertyChanged;
+                    bool removedFromVM = Lessons.Remove(lessonToRemove);
+                    Contract.Lessons.Remove(lessonToRemove);
+
+                    if (removedFromVM) { NotifyCalculatedHoursChanged(); } // Notifica dopo la rimozione
+                }
             }
         }
         private void ExecuteCancelEditLesson(object? parameter) { ResetLessonInputFields(); IsEditingLesson = false; _lessonToEdit = null; }
         private bool CanExecuteCancelEditLesson(object? parameter) { return IsEditingLesson; }
 
-        // NUOVO: Logica per Confermare/Deconfermare una Lezione
         private void ExecuteToggleLessonConfirmation(object? parameter)
         {
             if (parameter is Lesson lessonToToggle)
             {
-                lessonToToggle.IsConfirmed = !lessonToToggle.IsConfirmed; // Inverti lo stato
+                var oldState = lessonToToggle.IsConfirmed;
+                lessonToToggle.IsConfirmed = !lessonToToggle.IsConfirmed;
+
+                // MODIFICATO: Chiama NotifyCalculatedHoursChanged direttamente qui
+                if (oldState != lessonToToggle.IsConfirmed)
+                {
+                    NotifyCalculatedHoursChanged();
+                }
 
                 // --- Punto di estensione per effetti collaterali futuri ---
-                if (lessonToToggle.IsConfirmed) { /* Logica post-conferma (es. aggiorna BilledHours) */ }
-                else { /* Logica post-deconferma (es. aggiorna BilledHours) */ }
+                if (lessonToToggle.IsConfirmed) { /* Logica post-conferma */ }
+                else { /* Logica post-deconferma */ }
                 // ---------------------------------------------------------
             }
         }
-
-        // NUOVO: CanExecute per il comando Toggle
-        private bool CanExecuteToggleLessonConfirmation(object? parameter)
-        { return parameter is Lesson && !IsEditingLesson; } // Abilitato solo se non si sta modificando
-
-        // Modificato: CanExecute condiviso solo per Edit/Remove
-        private bool CanExecuteEditOrRemoveLesson(object? parameter)
-        { return parameter is Lesson && !IsEditingLesson; } // Abilitato solo se non si sta modificando
+        private bool CanExecuteToggleLessonConfirmation(object? parameter) { return parameter is Lesson && !IsEditingLesson; }
+        private bool CanExecuteEditOrRemoveLesson(object? parameter) { return parameter is Lesson && !IsEditingLesson; }
 
         // --- Metodi Helper ---
         private void ResetLessonInputFields() { NewLessonDate = DateTime.Today; NewLessonDuration = TimeSpan.FromHours(1); }
+
+        // Metodo helper per notificare l'aggiornamento delle ore calcolate
+        private void NotifyCalculatedHoursChanged()
+        {
+            OnPropertyChanged(nameof(TotalInsertedHours));
+            OnPropertyChanged(nameof(TotalConfirmedHours));
+            OnPropertyChanged(nameof(RemainingHours));
+        }
     }
 }

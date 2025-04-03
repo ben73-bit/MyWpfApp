@@ -1,9 +1,44 @@
-﻿<Application x:Class="WpfMvvmApp.App"
+﻿<!-- App.xaml -->
+<Application x:Class="WpfMvvmApp.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:WpfMvvmApp"
-             StartupUri="MainWindow.xaml">
+             xmlns:converters="clr-namespace:WpfMvvmApp.Converters" 
+             xmlns:views="clr-namespace:WpfMvvmApp.Views" 
+             StartupUri="MainWindow.xaml"> <!-- Assicurati che MainWindow.xaml sia nella root o specifica il percorso es. Views/MainWindow.xaml -->
+
     <Application.Resources>
-         
+        <ResourceDictionary>
+            <!-- Aggiungi qui tutti i converter usati nell'applicazione -->
+
+            <!-- Converter per cambiare testo pulsante Add/Update Lesson -->
+            <converters:BoolToButtonTextConverter x:Key="BoolToButtonTextConverter"/>
+
+            <!-- Converter per mostrare/nascondere elementi (es. pulsante Cancel) -->
+            <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+
+            <!-- Converter per invertire un booleano (usato per IsEnabled) -->
+            <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
+
+            <!-- NUOVO: Converter per abilitare/disabilitare basato su null -->
+            <converters:NullToBooleanConverter x:Key="NullToBooleanConverter"/>
+
+            <!-- Puoi aggiungere qui anche stili globali se necessario -->
+            <!-- Esempio Stile TextBox per errori di validazione -->
+            <!--
+            <Style TargetType="{x:Type TextBox}">
+                <Style.Triggers>
+                    <Trigger Property="Validation.HasError" Value="true">
+                        <Setter Property="ToolTip"
+                                Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                        <Setter Property="BorderBrush" Value="Red"/>
+                        <Setter Property="BorderThickness" Value="1.5"/>
+                    </Trigger>
+                </Style.Triggers>
+            </Style>
+            -->
+
+        </ResourceDictionary>
     </Application.Resources>
+
 </Application>
