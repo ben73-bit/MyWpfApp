@@ -1,3 +1,4 @@
+<!-- WpfMvvmApp/Views/LessonView.xaml -->
 <UserControl x:Class="WpfMvvmApp.Views.LessonView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -7,6 +8,7 @@
              xmlns:converters="clr-namespace:WpfMvvmApp.Converters"
              xmlns:models="clr-namespace:WpfMvvmApp.Models"
              xmlns:vm="clr-namespace:WpfMvvmApp.ViewModels"
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors"  
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800"
              d:DataContext="{d:DesignInstance Type=vm:ContractViewModel}">
@@ -17,24 +19,17 @@
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
 
-        <!-- NUOVO: Stile per le righe della ListView basato su IsConfirmed -->
+        <!-- Stile per le righe della ListView basato su IsConfirmed -->
         <Style TargetType="{x:Type ListViewItem}">
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Style.Triggers>
-                <!-- Stile per lezioni non confermate (IsConfirmed = False) -->
                 <DataTrigger Binding="{Binding IsConfirmed}" Value="False">
-                    <!-- Usa un colore tipo arancione/giallo chiaro -->
                     <Setter Property="Background" Value="LightGoldenrodYellow"/>
-                    <!-- <Setter Property="Background" Value="Bisque"/> -->
                 </DataTrigger>
-                <!-- Stile per lezioni confermate (IsConfirmed = True) -->
                 <DataTrigger Binding="{Binding IsConfirmed}" Value="True">
-                    <!-- Usa un colore tipo verde chiaro -->
                     <Setter Property="Background" Value="PaleGreen"/>
-                     <!-- <Setter Property="Background" Value="LightGreen"/> -->
                 </DataTrigger>
-                 <!-- Opzionale: Stile per la riga selezionata -->
-                <Trigger Property="IsSelected" Value="True">
+                 <Trigger Property="IsSelected" Value="True">
                      <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/>
                      <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/>
                 </Trigger>
@@ -47,13 +42,11 @@
              <Setter Property="Padding" Value="5,2"/>
              <Setter Property="MinWidth" Value="50"/>
              <Style.Triggers>
-                 <!-- Disabilita visivamente quando IsEnabled è False -->
                  <Trigger Property="IsEnabled" Value="False">
                      <Setter Property="Opacity" Value="0.5"/>
                  </Trigger>
              </Style.Triggers>
          </Style>
-
     </UserControl.Resources>
 
     <Grid Margin="5">
@@ -70,10 +63,8 @@
                   ItemsSource="{Binding Lessons}"
                   Margin="0,0,0,10"
                   ScrollViewer.CanContentScroll="True"
-                  ScrollViewer.VerticalScrollBarVisibility="Auto"
-                  AlternationCount="2"> <!-- Opzionale: per alternare colori righe se non usi i trigger -->
+                  ScrollViewer.VerticalScrollBarVisibility="Auto">
 
-            <!-- Applica lo stile definito sopra per colorare le righe -->
             <ListView.ItemContainerStyle>
                 <StaticResource ResourceKey="{x:Type ListViewItem}"/>
             </ListView.ItemContainerStyle>
@@ -82,19 +73,33 @@
                 <GridView>
                     <!-- Colonne Dati Lezione -->
                     <GridViewColumn Header="Date" Width="100" DisplayMemberBinding="{Binding Date, StringFormat='dd/MM/yyyy'}" />
-                    <!-- Mostra ore e minuti per la durata -->
                     <GridViewColumn Header="Duration" Width="80" DisplayMemberBinding="{Binding Duration, StringFormat='hh\\:mm'}" />
-                    <!-- Colonna per mostrare lo stato confermato (Opzionale) -->
-                    <GridViewColumn Header="Confirmed?" Width="80">
+
+                    <!-- Colonna Conferma con CheckBox e Behavior -->
+                    <GridViewColumn Header="Confirmed" Width="80">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate DataType="{x:Type models:Lesson}">
-                                <CheckBox IsChecked="{Binding IsConfirmed, Mode=OneWay}" IsEnabled="False" HorizontalAlignment="Center"/>
+                                <CheckBox IsChecked="{Binding IsConfirmed, Mode=OneWay}"
+                                          HorizontalAlignment="Center"
+                                          VerticalAlignment="Center"
+                                          ToolTip="Click to confirm/unconfirm lesson"
+                                          IsEnabled="{Binding DataContext.IsEditingLesson,
+                                                             RelativeSource={RelativeSource AncestorType=ListView},
+                                                             Converter={StaticResource InverseBooleanConverter}}">
+                                    <i:Interaction.Triggers>
+                                        <i:EventTrigger EventName="Click">
+                                            <i:InvokeCommandAction
+                                                Command="{Binding DataContext.ToggleLessonConfirmationCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                                CommandParameter="{Binding}"/>
+                                        </i:EventTrigger>
+                                    </i:Interaction.Triggers>
+                                </CheckBox>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
                     </GridViewColumn>
 
-                    <!-- Colonna Azioni con Pulsanti -->
-                    <GridViewColumn Header="Actions" Width="Auto"> <!-- Larghezza automatica o fissa (es. 180) -->
+                    <!-- Colonna Azioni -->
+                    <GridViewColumn Header="Actions" Width="Auto">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate DataType="{x:Type models:Lesson}">
                                 <StackPanel Orientation="Horizontal">
@@ -103,21 +108,12 @@
                                             Command="{Binding DataContext.EditLessonCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
                                             CommandParameter="{Binding}"
                                             ToolTip="Edit this lesson" />
-                                            <!-- IsEnabled è gestito da CanExecute del comando -->
-
-                                    <!-- NUOVO: Pulsante Confirm -->
-                                    <Button Content="Confirm" Style="{StaticResource ActionButtonStyle}" Background="LightSkyBlue"
-                                            Command="{Binding DataContext.ConfirmLessonCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
-                                            CommandParameter="{Binding}"
-                                            ToolTip="Confirm this lesson"/>
-                                            <!-- IsEnabled è gestito da CanExecute del comando (che ora controlla !IsConfirmed e !IsEditingLesson) -->
 
                                     <!-- Pulsante Remove -->
                                     <Button Content="Remove" Style="{StaticResource ActionButtonStyle}" Background="LightCoral"
                                             Command="{Binding DataContext.RemoveLessonCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
                                             CommandParameter="{Binding}"
                                             ToolTip="Remove this lesson"/>
-                                            <!-- IsEnabled è gestito da CanExecute del comando -->
                                 </StackPanel>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>
@@ -128,24 +124,17 @@
 
         <!-- Pannello per Aggiungere/Modificare Lezione -->
         <Border Grid.Row="2" BorderBrush="LightGray" BorderThickness="0,1,0,0" Padding="10">
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+           <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
                 <TextBlock Text="Date:" VerticalAlignment="Center" Margin="0,0,5,0"/>
                 <DatePicker SelectedDate="{Binding NewLessonDate}" Width="120" VerticalAlignment="Center" Margin="0,0,15,0"/>
-
                 <TextBlock Text="Duration:" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <!-- Input Durata: assicurati che l'utente sappia il formato (es. hh:mm) -->
                 <TextBox Text="{Binding NewLessonDuration, UpdateSourceTrigger=PropertyChanged, StringFormat='hh\\:mm'}"
                          ToolTip="Enter duration in HH:MM format"
                          Width="60" VerticalAlignment="Center" Margin="0,0,15,0"/>
-
-                <!-- Pulsante Add/Update -->
                 <Button Style="{StaticResource ActionButtonStyle}" Background="LightGreen"
                         Command="{Binding AddLessonCommand}">
-                         <!-- Usa il converter per cambiare il testo del pulsante -->
                         <TextBlock Text="{Binding IsEditingLesson, Converter={StaticResource BoolToButtonTextConverter}}" FontWeight="SemiBold"/>
                 </Button>
-
-                <!-- Pulsante Cancel -->
                 <Button Content="Cancel" Style="{StaticResource ActionButtonStyle}" Background="LightGray"
                         Command="{Binding CancelEditLessonCommand}"
                         Visibility="{Binding IsEditingLesson, Converter={StaticResource BooleanToVisibilityConverter}}"
