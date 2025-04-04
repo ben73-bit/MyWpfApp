@@ -6,41 +6,41 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:WpfMvvmApp.Views"
              xmlns:vm="clr-namespace:WpfMvvmApp.ViewModels"
-             xmlns:converters="clr-namespace:WpfMvvmApp.Converters" 
+             xmlns:converters="clr-namespace:WpfMvvmApp.Converters"
              mc:Ignorable="d"
-             d:DesignHeight="600" d:DesignWidth="800"
+             d:DesignHeight="650" d:DesignWidth="850" 
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
 
     <UserControl.Resources>
         <!-- DataTemplate per LessonView -->
         <DataTemplate DataType="{x:Type vm:ContractViewModel}">
-            <local:LessonView />
+            <local:LessonView Margin="0,5,0,0"/> <!-- Aggiunto margine sopra LessonView -->
         </DataTemplate>
 
-        <!-- Converter per abilitare/disabilitare dettagli -->
-        <!-- Assicurati che sia definito (qui o in App.xaml) -->
+        <!-- Converter -->
         <converters:NullToBooleanConverter x:Key="NullToBooleanConverter"/>
 
-        <!-- Stile per i TextBox con Feedback di Validazione -->
-        <Style TargetType="{x:Type TextBox}">
-            <Setter Property="Margin" Value="0,0,0,5"/>
+        <!-- Stile TextBox con Validazione -->
+        <Style TargetType="{x:Type TextBox}" x:Key="ValidatedInputTextBox">
+            <Setter Property="Margin" Value="0,2,0,8"/> <!-- Aumentato margine sotto -->
             <Setter Property="VerticalContentAlignment" Value="Center"/>
-            <!-- Disabilita il template di errore predefinito di WPF -->
+            <Setter Property="Padding" Value="3,2"/> <!-- Padding interno -->
             <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
             <Style.Triggers>
                 <Trigger Property="Validation.HasError" Value="true">
-                    <!-- Mostra l'errore corrente nel ToolTip -->
-                    <Setter Property="ToolTip"
-                            Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors).CurrentItem.ErrorContent}"/>
+                    <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors).CurrentItem.ErrorContent}"/>
                     <Setter Property="BorderBrush" Value="Red"/>
                     <Setter Property="BorderThickness" Value="1.5"/>
+                    <!-- Potremmo aggiungere un'icona di errore o altro feedback -->
                 </Trigger>
             </Style.Triggers>
         </Style>
 
-         <!-- Stile per i DatePicker (feedback simile) -->
-         <Style TargetType="{x:Type DatePicker}">
-             <Setter Property="Margin" Value="0,0,0,5"/>
+         <!-- Stile DatePicker con Validazione -->
+         <Style TargetType="{x:Type DatePicker}" x:Key="ValidatedDatePicker">
+             <Setter Property="Margin" Value="0,2,0,8"/> <!-- Aumentato margine sotto -->
+             <Setter Property="VerticalContentAlignment" Value="Center"/>
+             <Setter Property="Padding" Value="3,2"/>
              <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/>
              <Style.Triggers>
                  <Trigger Property="Validation.HasError" Value="true">
@@ -51,128 +51,184 @@
              </Style.Triggers>
          </Style>
 
+         <!-- Stile per TextBlock Etichette -->
+         <Style TargetType="TextBlock" x:Key="LabelTextBlock">
+             <Setter Property="VerticalAlignment" Value="Center"/>
+             <Setter Property="Margin" Value="0,0,10,0"/>
+             <Setter Property="FontWeight" Value="SemiBold"/>
+         </Style>
+
+         <!-- Stile per il Pulsante Save -->
+         <Style TargetType="Button" x:Key="PrimaryButtonStyle">
+             <Setter Property="Padding" Value="15,5"/>
+             <Setter Property="Margin" Value="0,15,0,0"/>
+             <Setter Property="HorizontalAlignment" Value="Right"/>
+             <Setter Property="Background" Value="DodgerBlue"/>
+             <Setter Property="Foreground" Value="White"/>
+             <Setter Property="BorderThickness" Value="0"/>
+             <Setter Property="Cursor" Value="Hand"/>
+             <Style.Triggers>
+                 <Trigger Property="IsEnabled" Value="False">
+                     <Setter Property="Opacity" Value="0.6"/>
+                     <Setter Property="Cursor" Value="No"/>
+                 </Trigger>
+                  <Trigger Property="IsMouseOver" Value="True">
+                     <Setter Property="Background" Value="RoyalBlue"/>
+                 </Trigger>
+             </Style.Triggers>
+         </Style>
+
+         <!-- Stile per il GroupBox dei Dettagli -->
+         <Style TargetType="GroupBox">
+             <Setter Property="Padding" Value="10"/>
+             <Setter Property="Margin" Value="5,0,5,10"/>
+             <Setter Property="BorderBrush" Value="LightGray"/>
+             <Setter Property="BorderThickness" Value="1"/>
+             <!-- Potremmo aggiungere CornerRadius se il tema lo supporta bene -->
+         </Style>
+
     </UserControl.Resources>
 
-    <Grid>
+    <Grid Margin="10"> <!-- Aggiunto margine esterno -->
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="Auto" MinWidth="220"/>
+            <ColumnDefinition Width="*" MinWidth="300"/> <!-- Lista Contratti -->
+            <ColumnDefinition Width="Auto"/> <!-- GridSplitter -->
+            <ColumnDefinition Width="1.5*" MinWidth="350"/> <!-- Dettagli e Lezioni, più spazio -->
         </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
 
-        <!-- Pannello controlli -->
-        <StackPanel Orientation="Horizontal" Margin="5" Grid.Row="0" Grid.Column="0">
-            <Button Content="Add Contract" Command="{Binding AddNewContractCommand}" Margin="0,0,5,0"/>
-        </StackPanel>
+        <!-- Colonna Sinistra: Lista Contratti -->
+        <DockPanel Grid.Column="0">
+            <TextBlock DockPanel.Dock="Top" Text="Contracts" FontSize="16" FontWeight="Bold" Margin="5,0,0,10"/>
+            <Button DockPanel.Dock="Bottom" Content="Add New Contract" Command="{Binding AddNewContractCommand}" Margin="5,10" Padding="10,5"/>
+            <ListView ItemsSource="{Binding Contracts}" SelectedItem="{Binding SelectedContract, Mode=TwoWay}" Margin="5,0" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Company" DisplayMemberBinding="{Binding Company}" Width="120"/>
+                        <GridViewColumn Header="Contract Number" DisplayMemberBinding="{Binding ContractNumber}" Width="110"/>
+                        <!-- Rimosse colonne meno essenziali dalla lista per semplicità -->
+                        <!-- <GridViewColumn Header="Hourly Rate" DisplayMemberBinding="{Binding HourlyRate, StringFormat=C}" Width="80"/> -->
+                        <!-- <GridViewColumn Header="Total Hours" DisplayMemberBinding="{Binding TotalHours}" Width="70"/> -->
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </DockPanel>
 
-        <!-- Lista contratti -->
-        <ListView Grid.Row="1" Grid.Column="0"
-                  ItemsSource="{Binding Contracts}"
-                  SelectedItem="{Binding SelectedContract, Mode=TwoWay}"
-                  Margin="5" ScrollViewer.VerticalScrollBarVisibility="Auto">
-            <ListView.View>
-                <GridView>
-                    <GridViewColumn Header="Company" DisplayMemberBinding="{Binding Company}" Width="120"/>
-                    <GridViewColumn Header="Contract Number" DisplayMemberBinding="{Binding ContractNumber}" Width="110"/>
-                    <GridViewColumn Header="Hourly Rate" DisplayMemberBinding="{Binding HourlyRate, StringFormat=C}" Width="80"/>
-                    <GridViewColumn Header="Total Hours" DisplayMemberBinding="{Binding TotalHours}" Width="70"/>
-                    <GridViewColumn Header="Billed Hours" DisplayMemberBinding="{Binding BilledHours}" Width="70"/>
-                </GridView>
-            </ListView.View>
-        </ListView>
+        <!-- Separatore Verticale -->
+        <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Gainsboro" Margin="0,5"/>
 
-        <!-- Pannello dettagli contratto -->
-        <StackPanel Grid.Row="1" Grid.Column="1" Margin="5"
-                    DataContext="{Binding SelectedContract}"
-                    IsEnabled="{Binding SelectedContract, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource NullToBooleanConverter}}">
+        <!-- Colonna Destra: Dettagli Contratto e Lezioni -->
+        <ScrollViewer Grid.Column="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="5,0,0,0">
+            <!-- Usiamo uno StackPanel esterno per contenere GroupBox e LessonView -->
+            <StackPanel DataContext="{Binding SelectedContract}"
+                        IsEnabled="{Binding SelectedContract, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource NullToBooleanConverter}}">
 
-            <TextBlock Text="Contract Details" FontWeight="Bold" Margin="0,0,0,5"/>
+                <!-- *** LAYOUT DETTAGLI CONTRATTO MIGLIORATO *** -->
+                <GroupBox Header="Contract Details" FontWeight="Bold">
+                    <!-- Usiamo una Grid per allineare etichette e input -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <!-- Colonna per Etichette (larghezza automatica) -->
+                            <ColumnDefinition Width="Auto"/>
+                            <!-- Colonna per Input (prende lo spazio rimanente) -->
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/> <!-- Company -->
+                            <RowDefinition Height="Auto"/> <!-- Contract Number -->
+                            <RowDefinition Height="Auto"/> <!-- Hourly Rate -->
+                            <RowDefinition Height="Auto"/> <!-- Total Hours -->
+                            <RowDefinition Height="Auto"/> <!-- Billed Hours -->
+                            <RowDefinition Height="Auto"/> <!-- Start Date -->
+                            <RowDefinition Height="Auto"/> <!-- End Date -->
+                        </Grid.RowDefinitions>
 
-            <TextBlock Text="Company:" />
-            <TextBox Text="{Binding Company, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                        <!-- Company -->
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Company:" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}"
+                                 Text="{Binding Company, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
 
-            <TextBlock Text="Contract Number:" />
-            <TextBox Text="{Binding ContractNumber, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                        <!-- Contract Number -->
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Contract Number:" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}"
+                                 Text="{Binding ContractNumber, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
 
-            <TextBlock Text="Hourly Rate:" />
-            <!-- TextBox per HourlyRate con ExceptionValidationRule -->
-            <TextBox>
-                <TextBox.Text>
-                    <Binding Path="HourlyRate" UpdateSourceTrigger="PropertyChanged"
-                             ValidatesOnDataErrors="True" StringFormat="C" >
-                        <Binding.ValidationRules>
-                            <ExceptionValidationRule />
-                        </Binding.ValidationRules>
-                    </Binding>
-                </TextBox.Text>
-            </TextBox>
+                        <!-- Hourly Rate -->
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Hourly Rate (€):" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}">
+                            <TextBox.Text>
+                                <Binding Path="HourlyRate" UpdateSourceTrigger="PropertyChanged"
+                                         ValidatesOnDataErrors="True" StringFormat="N2"> <!-- N2 per formato numerico con 2 decimali -->
+                                    <Binding.ValidationRules><ExceptionValidationRule /></Binding.ValidationRules>
+                                </Binding>
+                            </TextBox.Text>
+                        </TextBox>
 
-            <TextBlock Text="Total Contract Hours:" />
-            <!-- TextBox per TotalHours con ExceptionValidationRule -->
-            <TextBox>
-                <TextBox.Text>
-                    <Binding Path="TotalHours" UpdateSourceTrigger="PropertyChanged"
-                             ValidatesOnDataErrors="True">
-                        <Binding.ValidationRules>
-                            <ExceptionValidationRule />
-                        </Binding.ValidationRules>
-                    </Binding>
-                </TextBox.Text>
-            </TextBox>
+                        <!-- Total Contract Hours -->
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Total Contract Hours:" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}">
+                             <TextBox.Text>
+                                <Binding Path="TotalHours" UpdateSourceTrigger="PropertyChanged"
+                                         ValidatesOnDataErrors="True">
+                                    <Binding.ValidationRules><ExceptionValidationRule /></Binding.ValidationRules>
+                                </Binding>
+                            </TextBox.Text>
+                        </TextBox>
 
-            <TextBlock Text="Billed Hours (Manual):" />
-            <!-- TextBox per BilledHours con ExceptionValidationRule -->
-            <TextBox>
-                <TextBox.Text>
-                    <Binding Path="BilledHours" UpdateSourceTrigger="PropertyChanged"
-                             ValidatesOnDataErrors="True"> <!-- Mantenere se ci sono regole DataAnnotations per BilledHours -->
-                        <Binding.ValidationRules>
-                            <ExceptionValidationRule />
-                        </Binding.ValidationRules>
-                    </Binding>
-                </TextBox.Text>
-            </TextBox>
+                        <!-- Billed Hours (Manual) -->
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Billed Hours (Manual):" Style="{StaticResource LabelTextBlock}"/>
+                        <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}">
+                            <TextBox.Text>
+                                <Binding Path="BilledHours" UpdateSourceTrigger="PropertyChanged"
+                                         ValidatesOnDataErrors="True">
+                                    <Binding.ValidationRules><ExceptionValidationRule /></Binding.ValidationRules>
+                                </Binding>
+                            </TextBox.Text>
+                         </TextBox>
 
-            <!-- Sezione Ore Calcolate -->
-            <Border Background="AliceBlue" Padding="8" Margin="0,10,0,10" CornerRadius="3">
-                <StackPanel>
-                     <TextBlock Text="Lesson Hours Summary" FontWeight="Bold" Margin="0,0,0,5" HorizontalAlignment="Center"/>
-                     <Grid>
-                         <Grid.ColumnDefinitions>
-                             <ColumnDefinition Width="Auto"/>
-                             <ColumnDefinition Width="*" MinWidth="40" />
-                         </Grid.ColumnDefinitions>
-                         <Grid.RowDefinitions>
-                             <RowDefinition Height="Auto"/>
-                             <RowDefinition Height="Auto"/>
-                             <RowDefinition Height="Auto"/>
-                         </Grid.RowDefinitions>
-                         <TextBlock Grid.Row="0" Grid.Column="0" Text="Inserted:" FontWeight="SemiBold" Margin="0,1,10,1" VerticalAlignment="Center"/>
-                         <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalInsertedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                         <TextBlock Grid.Row="1" Grid.Column="0" Text="Confirmed:" FontWeight="SemiBold" Margin="0,1,10,1" VerticalAlignment="Center"/>
-                         <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalConfirmedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                         <TextBlock Grid.Row="2" Grid.Column="0" Text="Remaining:" FontWeight="SemiBold" Margin="0,1,10,1" VerticalAlignment="Center"/>
-                         <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding RemainingHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
-                     </Grid>
-                </StackPanel>
-            </Border>
-            <!-- Fine Sezione Ore Calcolate -->
+                        <!-- Start Date -->
+                         <TextBlock Grid.Row="5" Grid.Column="0" Text="Start Date:" Style="{StaticResource LabelTextBlock}"/>
+                         <DatePicker Grid.Row="5" Grid.Column="1" Style="{StaticResource ValidatedDatePicker}"
+                                     SelectedDate="{Binding StartDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
 
-             <TextBlock Text="Start Date:" />
-             <DatePicker SelectedDate="{Binding StartDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
-             <TextBlock Text="End Date:" />
-             <DatePicker SelectedDate="{Binding EndDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                        <!-- End Date -->
+                         <TextBlock Grid.Row="6" Grid.Column="0" Text="End Date:" Style="{StaticResource LabelTextBlock}"/>
+                         <DatePicker Grid.Row="6" Grid.Column="1" Style="{StaticResource ValidatedDatePicker}"
+                                     SelectedDate="{Binding EndDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
 
-            <Button Content="Save Contract" Command="{Binding DataContext.SaveContractCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                    IsEnabled="{Binding IsValid}" Margin="0,5,0,0" />
-        </StackPanel>
+                    </Grid>
+                </GroupBox>
+                <!-- *** FINE LAYOUT DETTAGLI CONTRATTO *** -->
 
-        <!-- ContentControl per LessonView -->
-        <ContentControl Grid.Row="2" Grid.ColumnSpan="2" Margin="5,10,5,5"
-                        Content="{Binding SelectedContract}"/>
+
+                <!-- Sezione Ore Calcolate (dentro un Border per separazione visiva) -->
+                <Border Background="#FFF0F8FF" Padding="10" Margin="5,10" CornerRadius="4"> <!-- AliceBlue con angoli -->
+                    <StackPanel>
+                         <TextBlock Text="Lesson Hours Summary" FontWeight="Bold" Margin="0,0,0,8" HorizontalAlignment="Center"/>
+                         <Grid>
+                             <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*" MinWidth="40" /></Grid.ColumnDefinitions>
+                             <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Inserted:" FontWeight="SemiBold" Margin="0,1,10,1" VerticalAlignment="Center"/>
+                             <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalInsertedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Confirmed:" FontWeight="SemiBold" Margin="0,1,10,1" VerticalAlignment="Center"/>
+                             <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalConfirmedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Remaining:" FontWeight="SemiBold" Margin="0,1,10,1" VerticalAlignment="Center"/>
+                             <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding RemainingHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" HorizontalAlignment="Right"/>
+                         </Grid>
+                    </StackPanel>
+                </Border>
+                <!-- Fine Sezione Ore Calcolate -->
+
+                <!-- Pulsante Save Contract -->
+                <Button Content="Save Contract" Style="{StaticResource PrimaryButtonStyle}"
+                        Command="{Binding DataContext.SaveContractCommand, RelativeSource={RelativeSource AncestorType={x:Type local:ContractView}}}"
+                        IsEnabled="{Binding IsValid}" />
+                        <!-- Modificato RelativeSource per puntare alla View stessa -->
+
+                <!-- ContentControl per LessonView (il DataContext è già SelectedContract) -->
+                <!-- Il DataTemplate nelle risorse userà LessonView -->
+                <ContentControl Content="{Binding}" Margin="0,15,0,0"/>
+
+            </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>
