@@ -1,8 +1,8 @@
 // WpfMvvmApp/Models/Contract.cs
 using System;
-using System.Collections.Generic; // Aggiunto per List<>
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using WpfMvvmApp.ValidationAttributes; // Assumendo che DateRangeAttribute sia qui
+using WpfMvvmApp.ValidationAttributes; // Assicurati namespace corretto
 
 namespace WpfMvvmApp.Models
 {
@@ -14,24 +14,36 @@ namespace WpfMvvmApp.Models
         [Required(ErrorMessage = "Contract number is required.")]
         public string ContractNumber { get; set; } = string.Empty;
 
-        [Range(0.01, 10000, ErrorMessage = "Hourly rate must be positive.")]
-        public decimal HourlyRate { get; set; }
+        // Rendi HourlyRate nullable se anche zero non è valido o se vuoi distinguerlo da "non impostato"
+        // [Range(0.01, 10000, ErrorMessage = "Hourly rate must be positive.")]
+        public decimal? HourlyRate { get; set; } // Esempio: reso nullable
 
-        [Range(1, int.MaxValue, ErrorMessage = "Total hours must be at least 1.")]
-        public int TotalHours { get; set; }
+        // Rendi TotalHours nullable se vuoi distinguerlo da "non impostato"
+        // [Range(1, int.MaxValue, ErrorMessage = "Total hours must be at least 1.")]
+        public int? TotalHours { get; set; } // Esempio: reso nullable
 
+        // BilledHours probabilmente può rimanere int (0 di default)
         [Range(0, int.MaxValue, ErrorMessage = "Billed hours cannot be negative.")]
-        public int BilledHours { get; set; } // Questo potrebbe essere calcolato
+        public int BilledHours { get; set; }
 
-        [Required(ErrorMessage = "Start date is required.")]
-        public DateTime StartDate { get; set; } = DateTime.Today;
+        // --- MODIFICHE PER DATE FACOLTATIVE ---
+        // 1. Rimosso [Required]
+        // 2. Cambiato tipo in DateTime?
+        public DateTime? StartDate { get; set; } // Non più obbligatorio, può essere null
 
-        [Required(ErrorMessage = "End date is required.")]
+        // 1. Rimosso [Required]
+        // 2. Cambiato tipo in DateTime?
+        // 3. L'attributo DateRange deve gestire i null (vedi sotto)
         [DateRange(nameof(StartDate), ErrorMessage = "End date must be after start date.")]
-        public DateTime EndDate { get; set; } = DateTime.Today.AddMonths(1);
+        public DateTime? EndDate { get; set; } // Non più obbligatorio, può essere null
+        // --------------------------------------
 
-        // NUOVO: Lista delle lezioni associate a questo contratto
-        // Inizializzata per evitare NullReferenceException
         public List<Lesson> Lessons { get; set; } = new List<Lesson>();
+
+        // Costruttore opzionale per inizializzare valori di default se necessario
+        // public Contract()
+        // {
+        //     // Non impostare StartDate/EndDate qui se devono essere null di default
+        // }
     }
 }
