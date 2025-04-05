@@ -1,216 +1,137 @@
-using System;
+// WpfMvvmApp/ViewModels/MainViewModel.cs
+
+// ***** USING AGGIUNTI *****
+using System.Collections.Generic; // Necessario se si usano List<> o altri generics
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
+using System.ComponentModel; // Per INotifyPropertyChanged, EventArgs, ecc.
 using System.Linq;
-using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices; // Per CallerMemberName
+using System.Windows; // Per MessageBox
 using System.Windows.Input;
 using WpfMvvmApp.Models;
-using WpfMvvmApp.ViewModels; // Assicurati che questo using sia presente
+using WpfMvvmApp.Services;
+// Assicurati che anche RelayCommand sia accessibile (potrebbe richiedere un using specifico)
+// using WpfMvvmApp.Commands;
+// **************************
 
 namespace WpfMvvmApp.ViewModels
 {
+    // Aggiunto : INotifyPropertyChanged che mancava nella dichiarazione della classe nell'esempio precedente
     public class MainViewModel : INotifyPropertyChanged
     {
-        private string _newUsername = "";
-        private string _usernameValidationMessage = "";
-        private User _user = null!; // Inizializzato nel costruttore
-        private ICommand? _updateUsernameCommand;
-        private ContractViewModel? _selectedContract;
+        // Istanziare i servizi (o ottenerli tramite DI)
+        private readonly IDialogService _dialogService = new DialogService();
+        private readonly ICalService _calService = new ICalServiceImplementation();
 
-        public User User
-        {
-            get { return _user; }
-            set
-            {
-                _user = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public string NewUsername
-        {
-            get { return _newUsername; }
-            set
-            {
-                // Validazione
-                if (string.IsNullOrWhiteSpace(value))
-                {
-                    UsernameValidationMessage = "Username cannot be empty.";
-                    // Non aggiorna _newUsername quando non valido
-                }
-                else if (value.Length > 20)
-                {
-                    UsernameValidationMessage = "Username cannot be longer than 20 characters.";
-                    // Non aggiorna _newUsername quando non valido
-                }
-                else
-                {
-                    UsernameValidationMessage = "";
-                    if (_newUsername != value)
-                    {
-                        _newUsername = value;
-                        OnPropertyChanged();
-                    }
-                }
-
-                // Informa il comando che lo stato di CanExecute potrebbe essere cambiato
-                if (UpdateUsernameCommand is RelayCommand command)
-                {
-                    command.RaiseCanExecuteChanged();
-                }
-            }
-        }
-
-        public string UsernameValidationMessage
-        {
-            get { return _usernameValidationMessage; }
-            set
-            {
-                if (_usernameValidationMessage != value)
-                {
-                    _usernameValidationMessage = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-
-        public ICommand UpdateUsernameCommand
-        {
-            get
-            {
-                _updateUsernameCommand ??= new RelayCommand(UpdateUsername, CanUpdateUsername);
-                return _updateUsernameCommand;
-            }
-        }
-
-        // Proprietà per la gestione dei contratti
+        // Collezioni e Selezione
         public ObservableCollection<ContractViewModel> Contracts { get; } = new ObservableCollection<ContractViewModel>();
 
+        private ContractViewModel? _selectedContract;
         public ContractViewModel? SelectedContract
         {
-            get { return _selectedContract; }
+            get => _selectedContract;
             set
             {
-                if (_selectedContract != value)
+                // Usa SetProperty per notificare il cambiamento
+                if (SetProperty(ref _selectedContract, value))
                 {
-                    _selectedContract = value;
-                    OnPropertyChanged();
-                    //Informiamo anche gli eventi in caso di salvataggio o cambio selezione
-                    CommandManager.InvalidateRequerySuggested();
+                     (SaveContractCommand as RelayCommand)?.RaiseCanExecuteChanged();
                 }
             }
         }
 
+        // Comandi
         public ICommand AddNewContractCommand { get; }
-        public ICommand SaveContractCommand { get; } = null!;
-        
+        public ICommand SaveContractCommand { get; }
+
+        // Costruttore
         public MainViewModel()
         {
-            try
-            {
-                // Inizializza l'utente
-                User = new User { Username = "Simone Benzi" };
-
-                // Imposta il valore iniziale di NewUsername dopo aver inizializzato User
-                // Questa chiamata attiverà la validazione
-                NewUsername = User.Username;
-
-                // Inizializza i command
-                AddNewContractCommand = new RelayCommand(AddNewContract);
-                SaveContractCommand = new RelayCommand(SaveContract, CanSaveContract);
-
-                // Inizializza i contratti di esempio
-                LoadContracts(); // Chiama il metodo per caricare i contratti
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Exception in MainViewModel constructor: {ex}");
-                // Considerare di propagare l'eccezione o gestirla meglio
-                throw;
-            }
+            // Assicurati che RelayCommand sia accessibile
+            AddNewContractCommand = new RelayCommand(ExecuteAddNewContract);
+            SaveContractCommand = new RelayCommand(ExecuteSaveContract, CanExecuteSaveContract);
+            LoadContracts();
         }
 
         private void LoadContracts()
         {
-            // Crea il primo contratto di esempio
-            Contract contract1 = new Contract { Company = "Azienda 1", ContractNumber = "Contratto 1", HourlyRate = 50, TotalHours = 100, StartDate = new DateTime(2024, 1, 1), EndDate = new DateTime(2024, 12, 31) };
-            ContractViewModel contractVM1 = new ContractViewModel(contract1);
-            // Aggiungi lezioni di esempio al primo contratto
-            contractVM1.Lessons.Add(new Lesson { Date = new DateTime(2024, 5, 10), Duration = TimeSpan.FromHours(2), Contract = contract1 });
-            contractVM1.Lessons.Add(new Lesson { Date = new DateTime(2024, 5, 12), Duration = TimeSpan.FromHours(1.5), Contract = contract1 });
-            Contracts.Add(contractVM1);
+            var exampleUser = CreateExampleUser();
 
-            // Crea il secondo contratto di esempio
-            Contract contract2 = new Contract { Company = "Azienda 2", ContractNumber = "Contratto 2", HourlyRate = 60, TotalHours = 120, StartDate = new DateTime(2024, 3, 15), EndDate = new DateTime(2025, 3, 14) };
-            ContractViewModel contractVM2 = new ContractViewModel(contract2);
-            // Aggiungi lezioni di esempio al secondo contratto
-            contractVM2.Lessons.Add(new Lesson { Date = new DateTime(2024, 5, 11), Duration = TimeSpan.FromHours(3), Contract = contract2 });
-            Contracts.Add(contractVM2);
-        }
-
-
-        private bool CanUpdateUsername(object? parameter)
-        {
-            return !string.IsNullOrWhiteSpace(NewUsername) &&
-                   NewUsername.Length <= 20 &&
-                   string.IsNullOrEmpty(UsernameValidationMessage);
-        }
-
-        private bool CanSaveContract(object? parameter)
-        {
-
-            return SelectedContract != null;
-        }
-
-        private void UpdateUsername(object? parameter)
-        {
-            if (CanUpdateUsername(parameter))
+            Contracts.Clear();
+            foreach (var contractModel in exampleUser.Contracts)
             {
-                User.Username = NewUsername;
-                OnPropertyChanged(nameof(User));
+                // Passa i servizi al costruttore di ContractViewModel
+                var contractVM = new ContractViewModel(contractModel, _dialogService, _calService);
+                Contracts.Add(contractVM);
             }
+            SelectedContract = Contracts.FirstOrDefault();
         }
 
-        // Metodo per aggiungere un nuovo contratto
-        private void AddNewContract(object? parameter)
+        private void ExecuteAddNewContract(object? parameter)
         {
-            // Creazione di un nuovo contratto
-            Contract newContract = new Contract
-            {
-                Company = "Nuova Azienda",
-                ContractNumber = "Nuovo Contratto",
-                HourlyRate = 0,
-                TotalHours = 0
-            };
-
-            // Creazione di un nuovo contratto view model
-            ContractViewModel newContractViewModel = new ContractViewModel(newContract);
-
-            // Aggiunta del contratto alla lista
-            Contracts.Add(newContractViewModel);
+             var newContractModel = new Contract
+             {
+                 Company = "New Company",
+                 ContractNumber = $"CN-{DateTime.Now.Ticks}",
+                 TotalHours = 10
+             };
+             var newContractVM = new ContractViewModel(newContractModel, _dialogService, _calService);
+             Contracts.Add(newContractVM);
+             SelectedContract = newContractVM;
         }
 
-        //Salva contratto
-        private void SaveContract(object? parameter)
-{
-     if (SelectedContract != null && SelectedContract.IsValid) // Ricontrolla la validità
-     {
-         // Il modello è già aggiornato dal binding bidirezionale.
-         // Qui implementeremo la logica di persistenza in futuro.
+        private void ExecuteSaveContract(object? parameter)
+        {
+             if (SelectedContract?.Contract != null && SelectedContract.IsValid)
+             {
+                 // Ora MessageBox è riconosciuto grazie a 'using System.Windows;'
+                 MessageBox.Show($"Contract '{SelectedContract.Company}' saved (simulated).",
+                                 "Save Contract",
+                                 MessageBoxButton.OK, // Riconosciuto
+                                 MessageBoxImage.Information); // Riconosciuto
+             }
+        }
 
-         System.Windows.MessageBox.Show($"Contract '{SelectedContract.ContractNumber}' saved (in memory).", "Save Successful", System.Windows.MessageBoxButton.OK, System.Windows.MessageBoxImage.Information);
+        private bool CanExecuteSaveContract(object? parameter)
+        {
+            return SelectedContract != null && SelectedContract.IsValid;
+        }
 
-         // Rimuoviamo la chiamata superflua a OnPropertyChanged(nameof(Contracts))
-         // OnPropertyChanged(nameof(Contracts));
-     }
-}
+        // Funzione helper per dati di esempio
+        private User CreateExampleUser()
+        {
+            var user = new User { Username = "DefaultUser" };
+            // Assicurati che Contract sia istanziabile correttamente
+            var contract1 = new Contract { Company = "Tech Solutions", ContractNumber = "TS-001", HourlyRate = 70, TotalHours = 100, StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(6) };
+            var contract2 = new Contract { Company = "Edu World", ContractNumber = "EW-002", HourlyRate = 65, TotalHours = 50 };
 
+            // Assicurati che Lesson sia istanziabile correttamente
+            contract1.Lessons.Add(new Lesson { StartDateTime = DateTime.Today.AddDays(-5).AddHours(10), Duration = TimeSpan.FromHours(2), Contract = contract1, Summary = "Setup" });
+            contract1.Lessons.Add(new Lesson { StartDateTime = DateTime.Today.AddDays(-3).AddHours(14), Duration = TimeSpan.FromMinutes(90), Contract = contract1, Summary = "Training 1", IsConfirmed=true });
+
+            user.Contracts.Add(contract1);
+            user.Contracts.Add(contract2);
+            return user;
+        }
+
+        // --- Implementazione INotifyPropertyChanged ---
+        // Ora PropertyChangedEventHandler e PropertyChangedEventArgs sono riconosciuti
         public event PropertyChangedEventHandler? PropertyChanged;
 
+        // Ora CallerMemberName è riconosciuto
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        // Ora CallerMemberName e EqualityComparer sono riconosciuti
+        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(storage, value)) return false;
+            storage = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+        // --- Fine Implementazione INotifyPropertyChanged ---
     }
 }
