@@ -1,0 +1,42 @@
+<!-- WpfMvvmApp/Dialogs/InvoiceInputDialog.xaml -->
+<Window x:Class="WpfMvvmApp.Dialogs.InvoiceInputDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Enter Invoice Number"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="CenterOwner"
+        WindowStyle="ToolWindow"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        MinWidth="300"
+        MaxWidth="500"
+        FocusManager.FocusedElement="{Binding ElementName=InvoiceNumberTextBox}"> <!-- Imposta focus iniziale -->
+
+    <StackPanel Margin="15">
+        <TextBlock Text="Please enter the invoice number for the selected lessons:"
+                   Margin="0,0,0,10"
+                   TextWrapping="Wrap"/>
+
+        <!-- Il TextBox per l'input, con x:Name per accedervi dal code-behind -->
+        <TextBox x:Name="InvoiceNumberTextBox"
+                 MinWidth="250"
+                 Margin="0,0,0,15"/>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+            <!-- Pulsante OK: IsDefault=True lo attiva con Invio, Click gestito nel code-behind -->
+            <Button Content="OK"
+                    Width="75"
+                    Margin="0,0,10,0"
+                    IsDefault="True"
+                    Click="OkButton_Click"/>
+
+            <!-- Pulsante Cancel: IsCancel=True chiude la finestra con DialogResult=false -->
+            <Button Content="Cancel"
+                    Width="75"
+                    IsCancel="True"/>
+        </StackPanel>
+    </StackPanel>
+</Window>

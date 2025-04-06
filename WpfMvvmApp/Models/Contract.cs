@@ -24,8 +24,7 @@ namespace WpfMvvmApp.Models
 
         // BilledHours probabilmente può rimanere int (0 di default)
         [Range(0, int.MaxValue, ErrorMessage = "Billed hours cannot be negative.")]
-        public int BilledHours { get; set; }
-
+        public int BilledHours { get; /* private set; */ }
         // --- MODIFICHE PER DATE FACOLTATIVE ---
         // 1. Rimosso [Required]
         // 2. Cambiato tipo in DateTime?

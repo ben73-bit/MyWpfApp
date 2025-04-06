@@ -1,25 +1,22 @@
 // WpfMvvmApp/ViewModels/MainViewModel.cs
-
-// ***** USING AGGIUNTI *****
-using System.Collections.Generic; // Necessario se si usano List<> o altri generics
+using System; // Aggiunto per DateTime
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.ComponentModel; // Per INotifyPropertyChanged, EventArgs, ecc.
+using System.ComponentModel;
 using System.Linq;
-using System.Runtime.CompilerServices; // Per CallerMemberName
-using System.Windows; // Per MessageBox
+using System.Runtime.CompilerServices;
+using System.Windows;
 using System.Windows.Input;
 using WpfMvvmApp.Models;
 using WpfMvvmApp.Services;
-// Assicurati che anche RelayCommand sia accessibile (potrebbe richiedere un using specifico)
+// Assicurati che RelayCommand sia accessibile
 // using WpfMvvmApp.Commands;
-// **************************
 
 namespace WpfMvvmApp.ViewModels
 {
-    // Aggiunto : INotifyPropertyChanged che mancava nella dichiarazione della classe nell'esempio precedente
     public class MainViewModel : INotifyPropertyChanged
     {
-        // Istanziare i servizi (o ottenerli tramite DI)
+        // Istanziare i servizi
         private readonly IDialogService _dialogService = new DialogService();
         private readonly ICalService _calService = new ICalServiceImplementation();
 
@@ -32,10 +29,14 @@ namespace WpfMvvmApp.ViewModels
             get => _selectedContract;
             set
             {
-                // Usa SetProperty per notificare il cambiamento
+                // Usa SetProperty per notificare il cambiamento alla UI
                 if (SetProperty(ref _selectedContract, value))
                 {
-                     (SaveContractCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    // Aggiorna CanExecute del comando Save
+                    (SaveContractCommand as RelayCommand)?.RaiseCanExecuteChanged();
+
+                    // *** MODIFICA CHIAVE: Notifica il VM selezionato ***
+                    _selectedContract?.UpdateCommandStates();
                 }
             }
         }
@@ -55,7 +56,8 @@ namespace WpfMvvmApp.ViewModels
 
         private void LoadContracts()
         {
-            var exampleUser = CreateExampleUser();
+            // Qui caricheresti i dati da persistenza
+            var exampleUser = CreateExampleUser(); // Dati demo
 
             Contracts.Clear();
             foreach (var contractModel in exampleUser.Contracts)
@@ -64,6 +66,7 @@ namespace WpfMvvmApp.ViewModels
                 var contractVM = new ContractViewModel(contractModel, _dialogService, _calService);
                 Contracts.Add(contractVM);
             }
+            // Seleziona il primo contratto dopo il caricamento
             SelectedContract = Contracts.FirstOrDefault();
         }
 
@@ -72,28 +75,29 @@ namespace WpfMvvmApp.ViewModels
              var newContractModel = new Contract
              {
                  Company = "New Company",
-                 ContractNumber = $"CN-{DateTime.Now.Ticks}",
+                 ContractNumber = $"CN-{DateTime.Now.Ticks}", // Usa DateTime da System
                  TotalHours = 10
+                 // StartDate/EndDate sono null di default (essendo DateTime?)
              };
+             // Passa i servizi al costruttore
              var newContractVM = new ContractViewModel(newContractModel, _dialogService, _calService);
              Contracts.Add(newContractVM);
-             SelectedContract = newContractVM;
+             SelectedContract = newContractVM; // Seleziona il nuovo
         }
 
         private void ExecuteSaveContract(object? parameter)
         {
              if (SelectedContract?.Contract != null && SelectedContract.IsValid)
              {
-                 // Ora MessageBox è riconosciuto grazie a 'using System.Windows;'
                  MessageBox.Show($"Contract '{SelectedContract.Company}' saved (simulated).",
-                                 "Save Contract",
-                                 MessageBoxButton.OK, // Riconosciuto
-                                 MessageBoxImage.Information); // Riconosciuto
+                                 "Save Contract", MessageBoxButton.OK, MessageBoxImage.Information);
+                 // Qui andrebbe la logica di persistenza per SelectedContract.Contract
              }
         }
 
         private bool CanExecuteSaveContract(object? parameter)
         {
+            // Puoi salvare solo se un contratto è selezionato ed è valido
             return SelectedContract != null && SelectedContract.IsValid;
         }
 
@@ -101,37 +105,25 @@ namespace WpfMvvmApp.ViewModels
         private User CreateExampleUser()
         {
             var user = new User { Username = "DefaultUser" };
-            // Assicurati che Contract sia istanziabile correttamente
             var contract1 = new Contract { Company = "Tech Solutions", ContractNumber = "TS-001", HourlyRate = 70, TotalHours = 100, StartDate = DateTime.Today, EndDate = DateTime.Today.AddMonths(6) };
             var contract2 = new Contract { Company = "Edu World", ContractNumber = "EW-002", HourlyRate = 65, TotalHours = 50 };
 
-            // Assicurati che Lesson sia istanziabile correttamente
+            contract1.Lessons = new List<Lesson>(); // Inizializza lista
             contract1.Lessons.Add(new Lesson { StartDateTime = DateTime.Today.AddDays(-5).AddHours(10), Duration = TimeSpan.FromHours(2), Contract = contract1, Summary = "Setup" });
             contract1.Lessons.Add(new Lesson { StartDateTime = DateTime.Today.AddDays(-3).AddHours(14), Duration = TimeSpan.FromMinutes(90), Contract = contract1, Summary = "Training 1", IsConfirmed=true });
 
+            user.Contracts = new List<Contract>(); // Inizializza lista
             user.Contracts.Add(contract1);
             user.Contracts.Add(contract2);
             return user;
         }
 
         // --- Implementazione INotifyPropertyChanged ---
-        // Ora PropertyChangedEventHandler e PropertyChangedEventArgs sono riconosciuti
         public event PropertyChangedEventHandler? PropertyChanged;
-
-        // Ora CallerMemberName è riconosciuto
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        // Ora CallerMemberName e EqualityComparer sono riconosciuti
+        { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
         protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(storage, value)) return false;
-            storage = value;
-            OnPropertyChanged(propertyName);
-            return true;
-        }
+        { if (EqualityComparer<T>.Default.Equals(storage, value)) return false; storage = value; OnPropertyChanged(propertyName); return true; }
         // --- Fine Implementazione INotifyPropertyChanged ---
     }
 }

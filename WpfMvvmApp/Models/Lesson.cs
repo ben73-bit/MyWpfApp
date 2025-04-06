@@ -9,7 +9,8 @@ namespace WpfMvvmApp.Models
 {
     public class Lesson : INotifyPropertyChanged
     {
-        private string _uid = Guid.NewGuid().ToString(); // ID univoco, inizializzato
+        // Campi esistenti
+        private string _uid = Guid.NewGuid().ToString();
         private DateTime _startDateTime;
         private TimeSpan _duration;
         private Contract? _contract;
@@ -18,92 +19,64 @@ namespace WpfMvvmApp.Models
         private string? _description;
         private string? _location;
 
-        // Identificatore Univoco (per iCal e potenziale sync)
-        // Non serve notifica se non cambia mai dopo la creazione
-        public string Uid
-        {
-            get => _uid;
-            // Rendere il setter privato o internal se non deve essere modificato dall'esterno
-            set => SetProperty(ref _uid, value);
-        }
+        // NUOVI CAMPI PER FATTURAZIONE
+        private bool _isBilled;
+        private string? _invoiceNumber;
+        private DateTime? _invoiceDate;
 
-        // MODIFICATO: Da Date a StartDateTime (include Data e Ora Inizio)
+        // Proprietà Esistenti
+        public string Uid { get => _uid; set => SetProperty(ref _uid, value); }
+
         [Required(ErrorMessage = "Start date and time is required.")]
-        public DateTime StartDateTime
-        {
-            get => _startDateTime;
-            set => SetProperty(ref _startDateTime, value);
-        }
+        public DateTime StartDateTime { get => _startDateTime; set => SetProperty(ref _startDateTime, value); }
 
-        // Durata rimane TimeSpan
         [Required(ErrorMessage = "Duration is required.")]
-        // Aggiungere validazione per durata > 0
         [Range(typeof(TimeSpan), "00:00:01", "23:59:59", ErrorMessage = "Duration must be positive.")]
-        public TimeSpan Duration
-        {
-            get => _duration;
-            set => SetProperty(ref _duration, value);
-        }
+        public TimeSpan Duration { get => _duration; set => SetProperty(ref _duration, value); }
 
-        // Contratto di riferimento (nullable come prima)
         [Required(ErrorMessage = "Contract is required.")]
-        public Contract? Contract
+        public Contract? Contract { get => _contract; set => SetProperty(ref _contract, value); }
+
+        public bool IsConfirmed { get => _isConfirmed; set => SetProperty(ref _isConfirmed, value); }
+
+        public string? Summary { get => _summary; set => SetProperty(ref _summary, value); }
+        public string? Description { get => _description; set => SetProperty(ref _description, value); }
+        public string? Location { get => _location; set => SetProperty(ref _location, value); }
+
+
+        // --- NUOVE PROPRIETA' PER FATTURAZIONE ---
+        public bool IsBilled
         {
-            get => _contract;
-            set => SetProperty(ref _contract, value);
+            get => _isBilled;
+            set => SetProperty(ref _isBilled, value);
         }
 
-        // Stato conferma
-        public bool IsConfirmed
+        public string? InvoiceNumber
         {
-            get => _isConfirmed;
-            set => SetProperty(ref _isConfirmed, value);
+            get => _invoiceNumber;
+            set => SetProperty(ref _invoiceNumber, value);
         }
 
-        // --- Campi Aggiuntivi per iCal Mapping (Opzionali) ---
-
-        // Titolo/Sommario dell'evento
-        public string? Summary
+        public DateTime? InvoiceDate
         {
-            get => _summary;
-            set => SetProperty(ref _summary, value);
+            get => _invoiceDate;
+            set => SetProperty(ref _invoiceDate, value);
         }
+        // --- FINE NUOVE PROPRIETA' ---
 
-        // Descrizione/Note
-        public string? Description
-        {
-            get => _description;
-            set => SetProperty(ref _description, value);
-        }
 
-        // Luogo
-        public string? Location
-        {
-            get => _location;
-            set => SetProperty(ref _location, value);
-        }
-
-        // --- Costruttore ---
+        // Costruttore
         public Lesson()
         {
-            // Imposta valori di default sensati
-            _startDateTime = DateTime.Now; // Default a ora corrente
+            _startDateTime = DateTime.Now;
             _duration = TimeSpan.FromHours(1);
             _isConfirmed = false;
-            // _uid viene già inizializzato
-            // Contract verrà impostato dal ViewModel
+            _isBilled = false; // Default a non fatturato
         }
 
-
-        // --- Implementazione INotifyPropertyChanged ---
+        // Implementazione INotifyPropertyChanged (invariata)
         public event PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
-        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
-        {
-            if (EqualityComparer<T>.Default.Equals(storage, value)) return false;
-            storage = value; OnPropertyChanged(propertyName); return true;
-        }
-        // --- Fine Implementazione INotifyPropertyChanged ---
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
+        protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null) { if (EqualityComparer<T>.Default.Equals(storage, value)) return false; storage = value; OnPropertyChanged(propertyName); return true; }
     }
 }
