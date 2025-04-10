@@ -12,16 +12,14 @@
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
 
     <UserControl.Resources>
-        <DataTemplate DataType="{x:Type vm:ContractViewModel}">
-            <local:LessonView Margin="0,5,0,0"/>
-        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ContractViewModel}"> <local:LessonView Margin="0,5,0,0"/> </DataTemplate>
         <converters:NullToBooleanConverter x:Key="NullToBooleanConverter"/>
-        <!-- Stili (ValidatedInputTextBox, ValidatedDatePicker, LabelTextBlock, PrimaryButtonStyle, GroupBox) -->
         <Style TargetType="{x:Type TextBox}" x:Key="ValidatedInputTextBox"> <Setter Property="Margin" Value="0,2,0,8"/> <Setter Property="VerticalContentAlignment" Value="Center"/> <Setter Property="Padding" Value="3,2"/> <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/> <Style.Triggers> <Trigger Property="Validation.HasError" Value="true"> <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors).CurrentItem.ErrorContent}"/> <Setter Property="BorderBrush" Value="Red"/> <Setter Property="BorderThickness" Value="1.5"/> </Trigger> <Trigger Property="IsReadOnly" Value="True"> <Setter Property="Background" Value="LightGray"/> <Setter Property="Focusable" Value="False"/> <Setter Property="BorderBrush" Value="Gray"/> </Trigger> </Style.Triggers> </Style>
         <Style TargetType="{x:Type DatePicker}" x:Key="ValidatedDatePicker"> <Setter Property="Margin" Value="0,2,0,8"/> <Setter Property="VerticalContentAlignment" Value="Center"/> <Setter Property="Padding" Value="3,2"/> <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/> <Style.Triggers> <Trigger Property="Validation.HasError" Value="true"> <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors).CurrentItem.ErrorContent}"/> <Setter Property="BorderBrush" Value="Red"/> <Setter Property="BorderThickness" Value="1.5"/> </Trigger> </Style.Triggers> </Style>
         <Style TargetType="TextBlock" x:Key="LabelTextBlock"> <Setter Property="VerticalAlignment" Value="Center"/> <Setter Property="Margin" Value="0,0,10,0"/> <Setter Property="FontWeight" Value="SemiBold"/> </Style>
         <Style TargetType="Button" x:Key="PrimaryButtonStyle"> <Setter Property="Padding" Value="15,5"/> <Setter Property="Margin" Value="0,15,0,0"/> <Setter Property="HorizontalAlignment" Value="Right"/> <Setter Property="Background" Value="DodgerBlue"/> <Setter Property="Foreground" Value="White"/> <Setter Property="BorderThickness" Value="0"/> <Setter Property="Cursor" Value="Hand"/> <Style.Triggers> <Trigger Property="IsEnabled" Value="False"> <Setter Property="Opacity" Value="0.6"/> <Setter Property="Cursor" Value="No"/> </Trigger> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="RoyalBlue"/> </Trigger> </Style.Triggers> </Style>
         <Style TargetType="GroupBox"> <Setter Property="Padding" Value="10"/> <Setter Property="Margin" Value="5,0,5,10"/> <Setter Property="BorderBrush" Value="LightGray"/> <Setter Property="BorderThickness" Value="1"/> </Style>
+        <Style TargetType="Button" x:Key="RemoveButtonStyle"> <Setter Property="Padding" Value="10,5"/> <Setter Property="Margin" Value="5,10"/> <Setter Property="Background" Value="IndianRed"/> <Setter Property="Foreground" Value="White"/> <Style.Triggers> <Trigger Property="IsEnabled" Value="False"> <Setter Property="Opacity" Value="0.6"/> <Setter Property="Cursor" Value="No"/> </Trigger> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="Firebrick"/> </Trigger> </Style.Triggers> </Style>
     </UserControl.Resources>
 
     <Grid Margin="10">
@@ -31,47 +29,50 @@
             <ColumnDefinition Width="1.5*" MinWidth="350"/>
         </Grid.ColumnDefinitions>
 
-        <!-- Colonna Sinistra: Lista Contratti -->
-        <DockPanel Grid.Column="0">
-            <TextBlock DockPanel.Dock="Top" Text="Contracts" FontSize="16" FontWeight="Bold" Margin="5,0,0,10"/>
-            <Button DockPanel.Dock="Bottom" Content="Add New Contract" Command="{Binding AddNewContractCommand}" Margin="5,10" Padding="10,5"/>
-            <ListView ItemsSource="{Binding Contracts}" SelectedItem="{Binding SelectedContract, Mode=TwoWay}" Margin="5,0" ScrollViewer.VerticalScrollBarVisibility="Auto">
-                <ListView.View>
-                    <GridView> <GridViewColumn Header="Company" DisplayMemberBinding="{Binding Company}" Width="120"/> <GridViewColumn Header="Contract Number" DisplayMemberBinding="{Binding ContractNumber}" Width="110"/> </GridView>
-                </ListView.View>
+        <!-- Colonna Sinistra: Lista Contratti e Pulsanti -->
+        <Grid Grid.Column="0">
+            <Grid.RowDefinitions> <RowDefinition Height="Auto"/> <RowDefinition Height="*"/> <RowDefinition Height="Auto"/> </Grid.RowDefinitions>
+            <TextBlock Grid.Row="0" Text="Contracts" FontSize="16" FontWeight="Bold" Margin="5,0,0,10"/>
+            <ListView Grid.Row="1" ItemsSource="{Binding Contracts}" SelectedItem="{Binding SelectedContract, Mode=TwoWay}" Margin="5,0" ScrollViewer.VerticalScrollBarVisibility="Auto">
+                <ListView.View> <GridView> <GridViewColumn Header="Company" DisplayMemberBinding="{Binding Company}" Width="120"/> <GridViewColumn Header="Contract Number" DisplayMemberBinding="{Binding ContractNumber}" Width="110"/> </GridView> </ListView.View>
             </ListView>
-        </DockPanel>
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Left">
+                <Button Content="Add New Contract" Command="{Binding AddNewContractCommand}" Margin="5,10,5,10" Padding="10,5"/>
+                <Button Content="Remove Selected" Style="{StaticResource RemoveButtonStyle}" Command="{Binding RemoveContractCommand}" IsEnabled="{Binding SelectedContract, Converter={StaticResource NullToBooleanConverter}}" ToolTip="Delete the currently selected contract and all its lessons"/>
+            </StackPanel>
+        </Grid>
 
         <!-- Separatore Verticale -->
         <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Gainsboro" Margin="0,5"/>
 
         <!-- Colonna Destra: Dettagli Contratto e Lezioni -->
-        <!-- MODIFICATO: Usiamo DockPanel invece di ScrollViewer > StackPanel -->
         <DockPanel Grid.Column="2" Margin="5,0,0,0" LastChildFill="True"
                    DataContext="{Binding SelectedContract}"
                    IsEnabled="{Binding SelectedContract, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource NullToBooleanConverter}}">
 
-            <!-- Elementi agganciati in alto -->
             <GroupBox DockPanel.Dock="Top" Header="Contract Details" FontWeight="Bold">
                  <Grid>
-                     <!-- ... Contenuto Grid Dettagli Contratto ... -->
-                     <Grid.ColumnDefinitions> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="*"/> </Grid.ColumnDefinitions> <Grid.RowDefinitions> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> </Grid.RowDefinitions> <TextBlock Grid.Row="0" Grid.Column="0" Text="Company:" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}" Text="{Binding Company, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/> <TextBlock Grid.Row="1" Grid.Column="0" Text="Contract Number:" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}" Text="{Binding ContractNumber, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/> <TextBlock Grid.Row="2" Grid.Column="0" Text="Hourly Rate (€):" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}"> <TextBox.Text> <Binding Path="HourlyRate" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" StringFormat="N2"> <Binding.ValidationRules><ExceptionValidationRule /></Binding.ValidationRules> </Binding> </TextBox.Text> </TextBox> <TextBlock Grid.Row="3" Grid.Column="0" Text="Total Contract Hours:" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}"> <TextBox.Text> <Binding Path="TotalHours" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True"> <Binding.ValidationRules><ExceptionValidationRule /></Binding.ValidationRules> </Binding> </TextBox.Text> </TextBox> <TextBlock Grid.Row="4" Grid.Column="0" Text="Billed Hours:" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}" Text="{Binding BilledHours, Mode=OneWay, StringFormat='{}{0:F2} h'}" IsReadOnly="True" ToolTip="Calculated from billed lessons"/> <TextBlock Grid.Row="5" Grid.Column="0" Text="Start Date:" Style="{StaticResource LabelTextBlock}"/> <DatePicker Grid.Row="5" Grid.Column="1" Style="{StaticResource ValidatedDatePicker}" SelectedDate="{Binding StartDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/> <TextBlock Grid.Row="6" Grid.Column="0" Text="End Date:" Style="{StaticResource LabelTextBlock}"/> <DatePicker Grid.Row="6" Grid.Column="1" Style="{StaticResource ValidatedDatePicker}" SelectedDate="{Binding EndDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                     <Grid.ColumnDefinitions> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="*"/> </Grid.ColumnDefinitions>
+                     <Grid.RowDefinitions> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> </Grid.RowDefinitions>
+                     <TextBlock Grid.Row="0" Grid.Column="0" Text="Company:" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="0" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}" Text="{Binding Company, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                     <TextBlock Grid.Row="1" Grid.Column="0" Text="Contract Number:" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="1" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}" Text="{Binding ContractNumber, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                     <TextBlock Grid.Row="2" Grid.Column="0" Text="Hourly Rate (€):" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="2" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}"> <TextBox.Text> <Binding Path="HourlyRate" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" StringFormat="N2"> <Binding.ValidationRules><ExceptionValidationRule /></Binding.ValidationRules> </Binding> </TextBox.Text> </TextBox>
+                     <TextBlock Grid.Row="3" Grid.Column="0" Text="Total Contract Hours:" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="3" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}"> <TextBox.Text> <Binding Path="TotalHours" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True"> <Binding.ValidationRules><ExceptionValidationRule /></Binding.ValidationRules> </Binding> </TextBox.Text> </TextBox>
+                     <!-- Billed Hours (Calcolata) -->
+                     <TextBlock Grid.Row="4" Grid.Column="0" Text="Billed Hours:" Style="{StaticResource LabelTextBlock}"/>
+                     <!-- CORREZIONE DEFINITIVA: Sintassi abbreviata corretta -->
+                     <TextBox Grid.Row="4" Grid.Column="1" Style="{StaticResource ValidatedInputTextBox}"
+                              Text="{Binding BilledHours, Mode=OneWay, StringFormat='{}{0:F2} h'}"
+                              IsReadOnly="True" ToolTip="Calculated from billed lessons"/>
+                     <TextBlock Grid.Row="5" Grid.Column="0" Text="Start Date:" Style="{StaticResource LabelTextBlock}"/> <DatePicker Grid.Row="5" Grid.Column="1" Style="{StaticResource ValidatedDatePicker}" SelectedDate="{Binding StartDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                     <TextBlock Grid.Row="6" Grid.Column="0" Text="End Date:" Style="{StaticResource LabelTextBlock}"/> <DatePicker Grid.Row="6" Grid.Column="1" Style="{StaticResource ValidatedDatePicker}" SelectedDate="{Binding EndDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
                  </Grid>
             </GroupBox>
-
             <Border DockPanel.Dock="Top" Background="#FFF0F8FF" Padding="10" Margin="5,10" CornerRadius="4">
-                 <!-- ... Contenuto Ore Calcolate ... -->
                  <StackPanel> <TextBlock Text="Lesson Hours Summary" FontWeight="Bold" Margin="0,0,0,8" HorizontalAlignment="Center"/> <Grid> <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*" MinWidth="40" /></Grid.ColumnDefinitions> <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions> <TextBlock Grid.Row="0" Grid.Column="0" Text="Inserted:" FontWeight="SemiBold" Margin="0,1,10,1" VerticalAlignment="Center"/> <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalInsertedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" HorizontalAlignment="Right"/> <TextBlock Grid.Row="1" Grid.Column="0" Text="Confirmed:" FontWeight="SemiBold" Margin="0,1,10,1" VerticalAlignment="Center"/> <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalConfirmedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" HorizontalAlignment="Right"/> <TextBlock Grid.Row="2" Grid.Column="0" Text="Remaining:" FontWeight="SemiBold" Margin="0,1,10,1" VerticalAlignment="Center"/> <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding RemainingHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" HorizontalAlignment="Right"/> </Grid> </StackPanel>
             </Border>
-
             <Button DockPanel.Dock="Top" Content="Save Contract" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding DataContext.SaveContractCommand, RelativeSource={RelativeSource AncestorType={x:Type local:ContractView}}}" IsEnabled="{Binding IsValid}" />
-
-            <!-- ContentControl per LessonView (ultimo elemento, riempie lo spazio) -->
-            <!-- Ora dovrebbe avere un'altezza limitata dal DockPanel -->
-            <ContentControl Content="{Binding}" Margin="0,15,0,0"/>
-
+            <ContentControl DockPanel.Dock="Top" Content="{Binding}" Margin="0,15,0,0"/>
         </DockPanel>
-        <!-- FINE DockPanel Colonna Destra -->
-
     </Grid>
 </UserControl>

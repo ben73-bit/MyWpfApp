@@ -13,6 +13,7 @@ using System.Windows;
 using System.Windows.Input;
 using WpfMvvmApp.Models;
 using WpfMvvmApp.Services;
+using WpfMvvmApp.Commands;
 // *** MODIFICA QUESTA USING CON IL NAMESPACE CORRETTO ***
 using WpfMvvmApp.Dialogs; // O il namespace dove si trova InvoiceInputDialog
 // ******************************************************

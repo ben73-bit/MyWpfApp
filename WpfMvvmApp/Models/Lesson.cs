@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
+using System.Text.Json.Serialization; // <-- AGGIUNGI QUESTO USING
 
 namespace WpfMvvmApp.Models
 {
@@ -35,6 +36,8 @@ namespace WpfMvvmApp.Models
         public TimeSpan Duration { get => _duration; set => SetProperty(ref _duration, value); }
 
         [Required(ErrorMessage = "Contract is required.")]
+        // *** AGGIUNTA JsonIgnore QUI ***
+        [JsonIgnore] // Dice a System.Text.Json di ignorare questa proprietà durante la serializzazione/deserializzazione
         public Contract? Contract { get => _contract; set => SetProperty(ref _contract, value); }
 
         public bool IsConfirmed { get => _isConfirmed; set => SetProperty(ref _isConfirmed, value); }

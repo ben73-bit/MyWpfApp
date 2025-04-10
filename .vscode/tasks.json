@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build", // Nome del task referenziato da launch.json
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/WpfMvvmApp.csproj", // Percorso del tuo file .csproj
+                // Argomenti specifici per la compilazione (opzionali)
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile" // Per interpretare gli errori di compilazione
+        }
+    ]
+}
