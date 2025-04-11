@@ -5,7 +5,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Enter Invoice Number"
+        Title="Enter Invoice Details" 
         SizeToContent="WidthAndHeight"
         WindowStartupLocation="CenterOwner"
         WindowStyle="ToolWindow"
@@ -13,30 +13,33 @@
         ShowInTaskbar="False"
         MinWidth="300"
         MaxWidth="500"
-        FocusManager.FocusedElement="{Binding ElementName=InvoiceNumberTextBox}"> <!-- Imposta focus iniziale -->
+        FocusManager.FocusedElement="{Binding ElementName=InvoiceNumberTextBox}">
 
-    <StackPanel Margin="15">
-        <TextBlock Text="Please enter the invoice number for the selected lessons:"
-                   Margin="0,0,0,10"
-                   TextWrapping="Wrap"/>
+    <!-- Usiamo una Grid per allineare meglio etichette e input -->
+    <Grid Margin="15">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/> <!-- Etichetta Numero -->
+            <RowDefinition Height="Auto"/> <!-- TextBox Numero -->
+            <RowDefinition Height="Auto"/> <!-- Etichetta Data -->
+            <RowDefinition Height="Auto"/> <!-- DatePicker Data -->
+            <RowDefinition Height="Auto"/> <!-- Pulsanti -->
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-        <!-- Il TextBox per l'input, con x:Name per accedervi dal code-behind -->
-        <TextBox x:Name="InvoiceNumberTextBox"
-                 MinWidth="250"
-                 Margin="0,0,0,15"/>
+        <TextBlock Grid.Row="0" Text="Invoice Number:" Margin="0,0,0,2"/>
+        <TextBox Grid.Row="1" x:Name="InvoiceNumberTextBox" MinWidth="250" Margin="0,0,0,10"/>
 
-        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-            <!-- Pulsante OK: IsDefault=True lo attiva con Invio, Click gestito nel code-behind -->
-            <Button Content="OK"
-                    Width="75"
-                    Margin="0,0,10,0"
-                    IsDefault="True"
-                    Click="OkButton_Click"/>
+        <!-- NUOVO: Input Data Fattura -->
+        <TextBlock Grid.Row="2" Text="Invoice Date:" Margin="0,5,0,2"/>
+        <DatePicker Grid.Row="3" x:Name="InvoiceDatePicker" SelectedDate="{Binding DefaultInvoiceDate, Mode=TwoWay}" Margin="0,0,0,15"/>
+                               <!-- Aggiunto Binding a proprietà nel code-behind per default -->
 
-            <!-- Pulsante Cancel: IsCancel=True chiude la finestra con DialogResult=false -->
-            <Button Content="Cancel"
-                    Width="75"
-                    IsCancel="True"/>
+        <!-- Pulsanti -->
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="OK" Width="75" Margin="0,0,10,0" IsDefault="True" Click="OkButton_Click"/>
+            <Button Content="Cancel" Width="75" IsCancel="True"/>
         </StackPanel>
-    </StackPanel>
+    </Grid>
 </Window>
