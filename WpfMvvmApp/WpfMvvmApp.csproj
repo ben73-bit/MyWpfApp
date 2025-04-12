@@ -6,6 +6,21 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+
+    <!-- Informazioni Assembly Aggiornate -->
+    <AssemblyName>ControllOreApp</AssemblyName>
+    <AssemblyTitle>ControllOre</AssemblyTitle>
+    <Product>ControllOre</Product>
+    <!-- Aggiunto Company (Autore) -->
+    <Company>Simone Benzi</Company>
+    <!-- Aggiunta Description -->
+    <Description>Applicazione desktop per docenti per la gestione dei contratti di insegnamento, la registrazione delle ore di lezione e la facilitazione della fatturazione. Sviluppata con la collaborazione di IA.</Description>
+    <!-- Aggiunto Copyright -->
+    <Copyright>Copyright © Simone Benzi 2024</Copyright>
+    <!-- Potresti aggiungere anche AssemblyVersion, FileVersion etc. se necessario -->
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+
   </PropertyGroup>
 
   <ItemGroup>
