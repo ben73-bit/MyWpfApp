@@ -10,57 +10,99 @@
              xmlns:vm="clr-namespace:WpfMvvmApp.ViewModels"
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors"
              mc:Ignorable="d"
-             d:DesignHeight="500" d:DesignWidth="850" 
+             d:DesignHeight="500" d:DesignWidth="850"
              d:DataContext="{d:DesignInstance Type=vm:ContractViewModel}">
 
     <UserControl.Resources>
-        <!-- Convertitori -->
+        <!-- Convertitori (Assicurati siano definiti in App.xaml o qui) -->
         <converters:BoolToButtonTextConverter x:Key="BoolToButtonTextConverter"/>
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
         <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
         <converters:EndTimeConverter x:Key="EndTimeConverter"/>
         <converters:TimeSpanHoursMinutesConverter x:Key="TimeSpanHoursMinutesConverter"/>
 
-        <!-- Stili -->
-        <Style TargetType="{x:Type ListViewItem}"> <Setter Property="HorizontalContentAlignment" Value="Stretch"/> <Style.Triggers> <DataTrigger Binding="{Binding IsConfirmed}" Value="False"><Setter Property="Background" Value="LightGoldenrodYellow"/></DataTrigger> <DataTrigger Binding="{Binding IsConfirmed}" Value="True"><Setter Property="Background" Value="PaleGreen"/></DataTrigger> <Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/><Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/></Trigger> </Style.Triggers> </Style>
-        <Style x:Key="ActionButtonStyle" TargetType="Button"> <Setter Property="Margin" Value="2"/><Setter Property="Padding" Value="5,2"/><Setter Property="MinWidth" Value="50"/> <Style.Triggers><Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.5"/></Trigger></Style.Triggers> </Style>
-        <Style x:Key="InputTextBoxStyle" TargetType="{x:Type TextBox}"> <Setter Property="VerticalContentAlignment" Value="Center"/> <Setter Property="Validation.ErrorTemplate" Value="{x:Null}"/> <Style.Triggers> <Trigger Property="Validation.HasError" Value="true"> <Setter Property="ToolTip" Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors).CurrentItem.ErrorContent}"/> <Setter Property="BorderBrush" Value="Red"/> <Setter Property="BorderThickness" Value="1.5"/> </Trigger> </Style.Triggers> </Style>
-        <Style x:Key="ImportExportButtonStyle" TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}"> <Setter Property="MinWidth" Value="80"/> <Setter Property="Margin" Value="5,0"/> <Setter Property="Background" Value="LightSteelBlue"/> </Style>
-        <Style x:Key="BillButtonStyle" TargetType="Button" BasedOn="{StaticResource ActionButtonStyle}"> <Setter Property="MinWidth" Value="100"/> <Setter Property="Margin" Value="10,0,5,0"/> <Setter Property="Background" Value="MediumSeaGreen"/> <Setter Property="Foreground" Value="White"/> <Style.Triggers> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="SeaGreen"/> </Trigger> </Style.Triggers> </Style>
+        <!-- Stili Locali (se non sono globali o se servono specifici) -->
+        <!-- Stile per evidenziare righe ListView -->
+        <Style TargetType="{x:Type ListViewItem}">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsConfirmed}" Value="False"><Setter Property="Background" Value="LightGoldenrodYellow"/></DataTrigger>
+                <DataTrigger Binding="{Binding IsConfirmed}" Value="True"><Setter Property="Background" Value="PaleGreen"/></DataTrigger>
+                <Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}"/><Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}"/></Trigger>
+            </Style.Triggers>
+        </Style>
+        <!-- Potremmo rimuovere gli altri stili (ActionButtonStyle, InputTextBoxStyle, etc.)
+             se sono definiti e applicati implicitamente in App.xaml -->
 
     </UserControl.Resources>
 
     <Grid Margin="5">
         <Grid.RowDefinitions> <RowDefinition Height="Auto" /> <RowDefinition Height="Auto" /> <RowDefinition Height="*" /> </Grid.RowDefinitions>
-        <Grid Grid.Row="0" Margin="0,0,0,10"> <Grid.ColumnDefinitions> <ColumnDefinition Width="*"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> </Grid.ColumnDefinitions> <TextBlock Text="Lessons" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" Grid.Column="0" /> <Button Grid.Column="1" Content="Bill Selected" Style="{StaticResource BillButtonStyle}" Command="{Binding BillSelectedLessonsCommand}" CommandParameter="{Binding ElementName=LessonsListView, Path=SelectedItems}" ToolTip="Mark selected Confirmed lessons as Billed"/> <Button Grid.Column="2" Content="Import (.ics)" Style="{StaticResource ImportExportButtonStyle}" Command="{Binding ImportLessonsCommand}" ToolTip="Import lessons from an iCalendar (.ics) file"/> <Button Grid.Column="3" Content="Export (.ics)" Style="{StaticResource ImportExportButtonStyle}" Command="{Binding ExportLessonsCommand}" ToolTip="Export these lessons to an iCalendar (.ics) file"/> </Grid>
-        <Border Grid.Row="1" BorderBrush="LightGray" BorderThickness="0,0,0,1" Padding="10,5,10,15" Margin="0,0,0,10">
-             <Grid HorizontalAlignment="Left"> <Grid.ColumnDefinitions> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="*"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> </Grid.ColumnDefinitions> <TextBlock Grid.Column="0" Text="Start:" VerticalAlignment="Center" Margin="0,0,5,0"/> <DatePicker Grid.Column="1" SelectedDate="{Binding NewLessonDate, UpdateSourceTrigger=PropertyChanged}" Width="110" VerticalAlignment="Center" Margin="0,0,5,0"/> <TextBlock Grid.Column="2" Text="at" VerticalAlignment="Center" Margin="0,0,5,0"/> <TextBox Grid.Column="3" Width="50" Style="{StaticResource InputTextBoxStyle}" ToolTip="Start Time (HH:MM)" Margin="0,0,10,0" Text="{Binding NewLessonStartTimeString, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/> <TextBlock Grid.Column="4" Text="Duration:" VerticalAlignment="Center" Margin="0,0,5,0"/> <TextBox Grid.Column="5" Width="55" Style="{StaticResource InputTextBoxStyle}" ToolTip="Duration (HH:MM)" Margin="0,0,10,0" Text="{Binding NewLessonDuration, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanHoursMinutesConverter}, ValidatesOnExceptions=True}"/> <TextBlock Grid.Column="6" Text="Summary:" VerticalAlignment="Center" Margin="0,0,5,0"/> <TextBox Grid.Column="7" Style="{StaticResource InputTextBoxStyle}" ToolTip="Lesson Summary/Title" Margin="0,0,10,0" MinWidth="120" Text="{Binding NewLessonSummary, UpdateSourceTrigger=PropertyChanged}"/> <Button Grid.Column="8" Style="{StaticResource ActionButtonStyle}" Background="LightGreen" Command="{Binding AddLessonCommand}" IsEnabled="{Binding IsLessonInputValid}"> <TextBlock Text="{Binding IsEditingLesson, Converter={StaticResource BoolToButtonTextConverter}}" FontWeight="SemiBold"/> </Button> <Button Grid.Column="9" Content="Cancel" Style="{StaticResource ActionButtonStyle}" Background="LightGray" Command="{Binding CancelEditLessonCommand}" Visibility="{Binding IsEditingLesson, Converter={StaticResource BooleanToVisibilityConverter}}" Margin="5,0,0,0"/> </Grid>
+
+        <!-- Riga 0: Titolo e Pulsanti Azione Globale -->
+        <Grid Grid.Row="0" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions> <ColumnDefinition Width="*"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> </Grid.ColumnDefinitions>
+            <TextBlock Text="Lessons" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" Grid.Column="0" />
+            <!-- Pulsante Bill usa stile specifico -->
+            <Button Grid.Column="1" Content="Bill Selected" Style="{StaticResource BillButtonStyle}" Command="{Binding BillSelectedLessonsCommand}" CommandParameter="{Binding ElementName=LessonsListView, Path=SelectedItems}" ToolTip="Mark selected Confirmed lessons as Billed"/>
+            <!-- Pulsanti Import/Export usano stile base (implicito) -->
+            <Button Grid.Column="2" Content="Import (.ics)" Style="{StaticResource ImportExportButtonStyle}" Command="{Binding ImportLessonsCommand}" ToolTip="Import lessons from an iCalendar (.ics) file"/>
+            <Button Grid.Column="3" Content="Export (.ics)" Style="{StaticResource ImportExportButtonStyle}" Command="{Binding ExportLessonsCommand}" ToolTip="Export these lessons to an iCalendar (.ics) file"/>
+        </Grid>
+
+        <!-- Riga 1: Pannello Input Aggiungi/Modifica -->
+        <Border Grid.Row="1" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1" Padding="10,5,10,15" Margin="0,0,0,10">
+             <Grid HorizontalAlignment="Left">
+                <Grid.ColumnDefinitions> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="*"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> </Grid.ColumnDefinitions>
+                <!-- TextBlock usano stile LabelTextBlock (se definito globalmente) -->
+                <TextBlock Grid.Column="0" Text="Start:" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <!-- DatePicker usa stile ValidatedDatePicker (implicito o esplicito) -->
+                <DatePicker Grid.Column="1" SelectedDate="{Binding NewLessonDate, UpdateSourceTrigger=PropertyChanged}" Width="110" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <TextBlock Grid.Column="2" Text="at" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <!-- TextBox usano stile ValidatedInputTextBox (implicito o esplicito) -->
+                <TextBox Grid.Column="3" Width="50" ToolTip="Start Time (HH:MM)" Margin="0,0,10,0" Text="{Binding NewLessonStartTimeString, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                <TextBlock Grid.Column="4" Text="Duration:" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <TextBox Grid.Column="5" Width="55" ToolTip="Duration (HH:MM)" Margin="0,0,10,0" Text="{Binding NewLessonDuration, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanHoursMinutesConverter}, ValidatesOnExceptions=True}"/>
+                <TextBlock Grid.Column="6" Text="Summary:" Style="{StaticResource LabelTextBlock}" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <TextBox Grid.Column="7" ToolTip="Lesson Summary/Title" Margin="0,0,10,0" MinWidth="120" Text="{Binding NewLessonSummary, UpdateSourceTrigger=PropertyChanged}"/>
+                <!-- Pulsante Add/Update usa stile AccentButtonStyle -->
+                <Button Grid.Column="8" Style="{StaticResource AccentButtonStyle}" Command="{Binding AddLessonCommand}" IsEnabled="{Binding IsLessonInputValid}">
+                    <TextBlock Text="{Binding IsEditingLesson, Converter={StaticResource BoolToButtonTextConverter}}" FontWeight="SemiBold"/>
+                </Button>
+                <!-- Pulsante Cancel usa stile base (implicito) -->
+                <Button Grid.Column="9" Content="Cancel" Command="{Binding CancelEditLessonCommand}" Visibility="{Binding IsEditingLesson, Converter={StaticResource BooleanToVisibilityConverter}}"/>
+             </Grid>
         </Border>
+
+        <!-- Riga 2: Lista Lezioni -->
         <ListView Grid.Row="2" Name="LessonsListView" ItemsSource="{Binding Lessons}" ScrollViewer.VerticalScrollBarVisibility="Auto" SelectionMode="Extended">
             <i:Interaction.Triggers> <i:KeyTrigger Key="Delete"> <i:InvokeCommandAction Command="{Binding RemoveSelectedLessonsCommand}" CommandParameter="{Binding ElementName=LessonsListView, Path=SelectedItems}"/> </i:KeyTrigger> </i:Interaction.Triggers>
-            <ListView.ItemContainerStyle><StaticResource ResourceKey="{x:Type ListViewItem}"/></ListView.ItemContainerStyle>
+            <ListView.ItemContainerStyle><StaticResource ResourceKey="{x:Type ListViewItem}"/></ListView.ItemContainerStyle> <!-- Mantiene stile righe -->
             <ListView.View>
                 <GridView>
+                    <!-- Le intestazioni useranno lo stile definito in App.xaml -->
                     <GridViewColumn Header="Date" Width="90" DisplayMemberBinding="{Binding StartDateTime, StringFormat='dd/MM/yyyy'}" />
                     <GridViewColumn Header="Start" Width="60" DisplayMemberBinding="{Binding StartDateTime, StringFormat='HH:mm'}" />
                     <GridViewColumn Header="Duration" Width="70" DisplayMemberBinding="{Binding Duration, Converter={StaticResource TimeSpanHoursMinutesConverter}}" />
                     <GridViewColumn Header="End" Width="60"> <GridViewColumn.DisplayMemberBinding> <MultiBinding Converter="{StaticResource EndTimeConverter}" StringFormat="HH:mm"> <Binding Path="StartDateTime"/> <Binding Path="Duration"/> </MultiBinding> </GridViewColumn.DisplayMemberBinding> </GridViewColumn>
                     <GridViewColumn Header="Summary" Width="120" DisplayMemberBinding="{Binding Summary}" />
-
-                    <!-- NUOVO: Colonna Amount -->
-                    <GridViewColumn Header="Amount (€)" Width="80">
-                         <GridViewColumn.CellTemplate>
-                                <DataTemplate DataType="{x:Type models:Lesson}">
-                                    <TextBlock Text="{Binding Amount, StringFormat=N2}" HorizontalAlignment="Right"/>
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                    </GridViewColumn>
-
-                    <GridViewColumn Header="Confirmed" Width="70"> <GridViewColumn.CellTemplate><DataTemplate DataType="{x:Type models:Lesson}"> <CheckBox IsChecked="{Binding IsConfirmed, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Click to confirm/unconfirm lesson" IsEnabled="{Binding DataContext.IsEditingLesson, RelativeSource={RelativeSource AncestorType=ListView}, Converter={StaticResource InverseBooleanConverter}}"> <i:Interaction.Triggers><i:EventTrigger EventName="Click"><i:InvokeCommandAction Command="{Binding DataContext.ToggleLessonConfirmationCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}"/></i:EventTrigger></i:Interaction.Triggers> </CheckBox> </DataTemplate></GridViewColumn.CellTemplate> </GridViewColumn> <!-- Larghezza ridotta -->
+                    <GridViewColumn Header="Amount (€)" Width="80"> <GridViewColumn.CellTemplate> <DataTemplate DataType="{x:Type models:Lesson}"> <TextBlock Text="{Binding Amount, StringFormat=N2}" HorizontalAlignment="Right"/> </DataTemplate> </GridViewColumn.CellTemplate> </GridViewColumn>
+                    <GridViewColumn Header="Confirmed" Width="70"> <GridViewColumn.CellTemplate><DataTemplate DataType="{x:Type models:Lesson}"> <CheckBox IsChecked="{Binding IsConfirmed, Mode=OneWay}" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Click to confirm/unconfirm lesson" IsEnabled="{Binding DataContext.IsEditingLesson, RelativeSource={RelativeSource AncestorType=ListView}, Converter={StaticResource InverseBooleanConverter}}"> <i:Interaction.Triggers><i:EventTrigger EventName="Click"><i:InvokeCommandAction Command="{Binding DataContext.ToggleLessonConfirmationCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}"/></i:EventTrigger></i:Interaction.Triggers> </CheckBox> </DataTemplate></GridViewColumn.CellTemplate> </GridViewColumn>
                     <GridViewColumn Header="Billed" Width="60"> <GridViewColumn.CellTemplate> <DataTemplate DataType="{x:Type models:Lesson}"> <CheckBox IsChecked="{Binding IsBilled, Mode=OneWay}" IsEnabled="False" HorizontalAlignment="Center" VerticalAlignment="Center"/> </DataTemplate> </GridViewColumn.CellTemplate> </GridViewColumn>
-                    <GridViewColumn Header="Invoice #" Width="90" DisplayMemberBinding="{Binding InvoiceNumber}" /> <!-- Larghezza ridotta -->
+                    <GridViewColumn Header="Invoice #" Width="90" DisplayMemberBinding="{Binding InvoiceNumber}" />
                     <GridViewColumn Header="Invoice Date" Width="90" DisplayMemberBinding="{Binding InvoiceDate, StringFormat='dd/MM/yyyy'}" />
-                    <GridViewColumn Header="Actions" Width="Auto"> <GridViewColumn.CellTemplate><DataTemplate DataType="{x:Type models:Lesson}"> <StackPanel Orientation="Horizontal"> <Button Content="Edit" Style="{StaticResource ActionButtonStyle}" Command="{Binding DataContext.EditLessonCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}" ToolTip="Edit this lesson" /> <Button Content="Remove" Style="{StaticResource ActionButtonStyle}" Background="LightCoral" Command="{Binding DataContext.RemoveLessonCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}" ToolTip="Remove this lesson"/> </StackPanel> </DataTemplate></GridViewColumn.CellTemplate> </GridViewColumn>
+                    <GridViewColumn Header="Actions" Width="Auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate DataType="{x:Type models:Lesson}">
+                                <StackPanel Orientation="Horizontal">
+                                    <!-- Pulsanti Edit/Remove nella lista usano stile base (implicito) -->
+                                    <Button Content="Edit" Command="{Binding DataContext.EditLessonCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}" ToolTip="Edit this lesson" />
+                                    <!-- Applicato stile Remove -->
+                                    <Button Content="Remove" Style="{StaticResource RemoveButtonStyle}" Command="{Binding DataContext.RemoveLessonCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}" ToolTip="Remove this lesson"/>
+                                </StackPanel>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>

@@ -2,12 +2,12 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch WpfMvvmApp (Debug)", // Nome descrittivo
+            "name": "Launch ControllOreApp (Debug)", // Nome descrittivo
             "type": "coreclr",
             "request": "launch",
             "preLaunchTask": "build", // Nome del task di compilazione (lo creeremo dopo)
             // *** PERCORSO CORRETTO BASATO SUL TUO INPUT ***
-            "program": "C:\\Users\\Simone Benzi\\Documents\\Progetto App\\MyWpfApp\\WpfMvvmApp\\bin\\Debug\\net9.0-windows\\WpfMvvmApp.dll",
+            "program": "C:\\Users\\Simone Benzi\\Documents\\Progetto App\\MyWpfApp\\WpfMvvmApp\\bin\\Debug\\net9.0-windows\\ControllOreApp.dll",
             // "${workspaceFolder}" si riferisce alla cartella principale del progetto (MyWpfApp)
             // Assicurati che il nome del file sia WpfMvvmApp.dll (o cambia se diverso)
             // ********************************************

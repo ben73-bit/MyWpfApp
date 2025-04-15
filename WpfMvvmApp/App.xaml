@@ -3,42 +3,69 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:WpfMvvmApp"
-             xmlns:converters="clr-namespace:WpfMvvmApp.Converters" 
-             xmlns:views="clr-namespace:WpfMvvmApp.Views" 
-             StartupUri="MainWindow.xaml"> <!-- Assicurati che MainWindow.xaml sia nella root o specifica il percorso es. Views/MainWindow.xaml -->
+             xmlns:converters="clr-namespace:WpfMvvmApp.Converters"
+             StartupUri="MainWindow.xaml"> <!-- O Views/MainWindow.xaml -->
 
     <Application.Resources>
-        <ResourceDictionary>
-            <!-- Aggiungi qui tutti i converter usati nell'applicazione -->
+         <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <!-- ... -->
+            </ResourceDictionary.MergedDictionaries>
 
-            <!-- Converter per cambiare testo pulsante Add/Update Lesson -->
+            <!-- Convertitori -->
             <converters:BoolToButtonTextConverter x:Key="BoolToButtonTextConverter"/>
-
-            <!-- Converter per mostrare/nascondere elementi (es. pulsante Cancel) -->
             <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
-
-            <!-- Converter per invertire un booleano (usato per IsEnabled) -->
             <converters:InverseBooleanConverter x:Key="InverseBooleanConverter"/>
-
-            <!-- NUOVO: Converter per abilitare/disabilitare basato su null -->
             <converters:NullToBooleanConverter x:Key="NullToBooleanConverter"/>
+            <converters:EndTimeConverter x:Key="EndTimeConverter"/>
+            <converters:TimeSpanHoursMinutesConverter x:Key="TimeSpanHoursMinutesConverter"/>
 
-            <!-- Puoi aggiungere qui anche stili globali se necessario -->
-            <!-- Esempio Stile TextBox per errori di validazione -->
-            <!--
-            <Style TargetType="{x:Type TextBox}">
-                <Style.Triggers>
-                    <Trigger Property="Validation.HasError" Value="true">
-                        <Setter Property="ToolTip"
-                                Value="{Binding RelativeSource={RelativeSource Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
-                        <Setter Property="BorderBrush" Value="Red"/>
-                        <Setter Property="BorderThickness" Value="1.5"/>
-                    </Trigger>
-                </Style.Triggers>
+            <!-- Palette Colori -->
+            <SolidColorBrush x:Key="PrimaryBrush" Color="#007ACC"/>
+            <SolidColorBrush x:Key="PrimaryMouseOverBrush" Color="#005A9E"/>
+            <SolidColorBrush x:Key="SecondaryBrush" Color="#F0F0F0"/>
+            <SolidColorBrush x:Key="SecondaryMouseOverBrush" Color="#E0E0E0"/>
+            <SolidColorBrush x:Key="AccentBrush" Color="#28A745"/>
+            <SolidColorBrush x:Key="AccentMouseOverBrush" Color="#218838"/>
+            <SolidColorBrush x:Key="DangerBrush" Color="#DC3545"/>
+            <SolidColorBrush x:Key="DangerMouseOverBrush" Color="#C82333"/>
+            <SolidColorBrush x:Key="DisabledForegroundBrush" Color="#888888"/>
+            <SolidColorBrush x:Key="DisabledBackgroundBrush" Color="#E0E0E0"/>
+            <SolidColorBrush x:Key="DefaultTextBrush" Color="#212529"/>
+            <SolidColorBrush x:Key="LightTextBrush" Color="White"/>
+            <SolidColorBrush x:Key="BorderBrush" Color="#CCCCCC"/>
+            <SolidColorBrush x:Key="ErrorBrush" Color="Red"/>
+
+            <!-- Stili Base e Impliciti -->
+            <Style TargetType="{x:Type Button}" x:Key="BaseButtonStyle"> <!-- ... Definizione completa ... --> </Style>
+            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource BaseButtonStyle}"/>
+            <Style TargetType="{x:Type TextBox}" x:Key="ValidatedInputTextBox"> <!-- ... Definizione completa ... --> </Style>
+            <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource ValidatedInputTextBox}"/>
+            <Style TargetType="{x:Type DatePicker}" x:Key="ValidatedDatePicker"> <!-- ... Definizione completa ... --> </Style>
+            <Style TargetType="{x:Type DatePicker}" BasedOn="{StaticResource ValidatedDatePicker}"/>
+            <Style TargetType="GroupBox"> <Setter Property="Padding" Value="10"/> <Setter Property="Margin" Value="5,0,5,10"/> <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/> <Setter Property="BorderThickness" Value="1"/> </Style>
+
+            <!-- *** AGGIUNGI/VERIFICA QUESTI STILI CON CHIAVE *** -->
+            <Style TargetType="TextBlock" x:Key="LabelTextBlock">
+                 <Setter Property="VerticalAlignment" Value="Center"/>
+                 <Setter Property="Margin" Value="0,0,10,0"/>
+                 <Setter Property="FontWeight" Value="SemiBold"/>
+                 <Setter Property="Foreground" Value="{StaticResource DefaultTextBrush}"/>
             </Style>
-            -->
+            <Style TargetType="Button" x:Key="PrimaryButtonStyle" BasedOn="{StaticResource BaseButtonStyle}">
+                 <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/> <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/> <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/> <Style.Triggers> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="{StaticResource PrimaryMouseOverBrush}"/> </Trigger> </Style.Triggers>
+            </Style>
+             <Style TargetType="Button" x:Key="RemoveButtonStyle" BasedOn="{StaticResource BaseButtonStyle}">
+                 <Setter Property="Background" Value="{StaticResource DangerBrush}"/> <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/> <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/> <Style.Triggers> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="{StaticResource DangerMouseOverBrush}"/> </Trigger> </Style.Triggers>
+            </Style>
+             <Style TargetType="Button" x:Key="AccentButtonStyle" BasedOn="{StaticResource BaseButtonStyle}">
+                 <Setter Property="Background" Value="{StaticResource AccentBrush}"/> <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/> <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/> <Style.Triggers> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="{StaticResource AccentMouseOverBrush}"/> </Trigger> </Style.Triggers>
+            </Style>
+            <Style TargetType="Button" x:Key="ImportExportButtonStyle" BasedOn="{StaticResource BaseButtonStyle}"> <Setter Property="MinWidth" Value="80"/> <Setter Property="Margin" Value="5,0"/> <Setter Property="Background" Value="LightSteelBlue"/> <Setter Property="Foreground" Value="{StaticResource DefaultTextBrush}"/> <Setter Property="BorderBrush" Value="Gray"/> <Style.Triggers> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="CornflowerBlue"/> </Trigger> </Style.Triggers> </Style>
+            <Style TargetType="Button" x:Key="BillButtonStyle" BasedOn="{StaticResource BaseButtonStyle}"> <Setter Property="MinWidth" Value="100"/> <Setter Property="Margin" Value="10,0,5,0"/> <Setter Property="Background" Value="MediumSeaGreen"/> <Setter Property="Foreground" Value="White"/> <Style.Triggers> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="SeaGreen"/> </Trigger> </Style.Triggers> </Style>
+            <!-- *************************************************** -->
 
-        </ResourceDictionary>
+         </ResourceDictionary>
     </Application.Resources>
 
 </Application>
