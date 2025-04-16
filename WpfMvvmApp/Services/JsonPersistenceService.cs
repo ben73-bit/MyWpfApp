@@ -24,7 +24,7 @@ namespace WpfMvvmApp.Services
         public JsonPersistenceService()
         {
             string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            string appFolderName = "WpfMvvmApp";
+            string appFolderName = "ControllOre";
             _saveFolderPath = Path.Combine(documentsPath, appFolderName);
             _fullPath = Path.Combine(_saveFolderPath, _saveFileName);
             Debug.WriteLine($"Persistence Service Initialized. Save Path: {_fullPath}");
