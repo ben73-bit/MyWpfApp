@@ -7,7 +7,7 @@
              xmlns:local="clr-namespace:WpfMvvmApp.Views"
              xmlns:vm="clr-namespace:WpfMvvmApp.ViewModels"
              xmlns:converters="clr-namespace:WpfMvvmApp.Converters"
-             xmlns:properties="clr-namespace:WpfMvvmApp.Properties" 
+             xmlns:properties="clr-namespace:WpfMvvmApp.Properties"
              mc:Ignorable="d"
              d:DesignHeight="650" d:DesignWidth="900"
              d:DataContext="{d:DesignInstance Type=vm:MainViewModel}">
@@ -16,6 +16,7 @@
         <DataTemplate DataType="{x:Type vm:ContractViewModel}"> <local:LessonView Margin="0,5,0,0"/> </DataTemplate>
         <converters:NullToBooleanConverter x:Key="NullToBooleanConverter"/>
         <!-- Stili sono definiti in App.xaml -->
+        <!-- Assicurati che LabelTextBlock, PrimaryButtonStyle, RemoveButtonStyle siano definiti lì -->
     </UserControl.Resources>
 
     <Grid Margin="10">
@@ -25,9 +26,7 @@
         <!-- Riga 0: Titolo App e Pulsanti Contratto Globali -->
         <Grid Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Margin="5,0,5,10">
              <Grid.ColumnDefinitions> <ColumnDefinition Width="*"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="Auto"/> </Grid.ColumnDefinitions>
-             <!-- MODIFICATO: Titolo App usa risorsa -->
              <TextBlock Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.AppName}, Mode=OneWay}" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
-             <!-- MODIFICATO: Contenuto Pulsanti usa risorse -->
              <Button Grid.Column="1" Content="{Binding Source={x:Static properties:Resources.AddContractButton_Content}, Mode=OneWay}" Command="{Binding AddNewContractCommand}" Padding="10,5" Margin="10,0,5,0" VerticalAlignment="Center"/>
              <Button Grid.Column="2" Content="{Binding Source={x:Static properties:Resources.SaveContractButton_Content}, Mode=OneWay}" Style="{StaticResource PrimaryButtonStyle}" Command="{Binding SaveContractCommand}" IsEnabled="{Binding SelectedContract.IsContractValid}" ToolTip="Save changes for the selected contract" Padding="10,5" Margin="5,0,5,0" VerticalAlignment="Center"/>
              <Button Grid.Column="3" Content="{Binding Source={x:Static properties:Resources.RemoveContractButton_Content}, Mode=OneWay}" Style="{StaticResource RemoveButtonStyle}" Command="{Binding RemoveContractCommand}" IsEnabled="{Binding SelectedContract, Converter={StaticResource NullToBooleanConverter}}" ToolTip="Delete the currently selected contract and all its lessons" Padding="10,5" Margin="5,0,0,0" VerticalAlignment="Center"/>
@@ -35,19 +34,18 @@
 
         <!-- Riga 1, Colonna 0: Lista Contratti -->
         <Grid Grid.Row="1" Grid.Column="0">
-            <Grid.RowDefinitions> <RowDefinition Height="Auto"/> <RowDefinition Height="*"/> </Grid.RowDefinitions> <!-- Spostato Grid da MainViewModel -->
-            <!-- MODIFICATO: Titolo Lista usa risorsa -->
+            <Grid.RowDefinitions> <RowDefinition Height="Auto"/> <RowDefinition Height="*"/> </Grid.RowDefinitions>
             <TextBlock Grid.Row="0" Text="{Binding Source={x:Static properties:Resources.ContractsTitle}, Mode=OneWay}" FontSize="14" FontWeight="SemiBold" Margin="5,0,0,5"/>
             <ListView Grid.Row="1" ItemsSource="{Binding Contracts}" SelectedItem="{Binding SelectedContract, Mode=TwoWay}" Margin="5,0,5,5" ScrollViewer.VerticalScrollBarVisibility="Auto">
                 <ListView.View>
                     <GridView>
-                        <!-- TODO: Localizzare Header colonne -->
-                        <GridViewColumn Header="Company" DisplayMemberBinding="{Binding Company}" Width="120"/>
-                        <GridViewColumn Header="Contract Number" DisplayMemberBinding="{Binding ContractNumber}" Width="110"/>
+                        <!-- *** MODIFICATO QUI: Header localizzati *** -->
+                        <GridViewColumn Header="{Binding Source={x:Static properties:Resources.ContractList_CompanyHeader}, Mode=OneWay}" DisplayMemberBinding="{Binding Company}" Width="120"/>
+                        <GridViewColumn Header="{Binding Source={x:Static properties:Resources.ContractList_NumberHeader}, Mode=OneWay}" DisplayMemberBinding="{Binding ContractNumber}" Width="110"/>
+                        <!-- ***************************************** -->
                     </GridView>
                 </ListView.View>
             </ListView>
-            <!-- Rimosso StackPanel pulsanti da qui, spostato in Grid Row 0 -->
         </Grid>
 
         <!-- Riga 1, Colonna 1: Splitter Verticale -->
@@ -58,27 +56,26 @@
             <Grid.RowDefinitions> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="*"/> </Grid.RowDefinitions>
             <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" MaxHeight="400">
                 <StackPanel>
-                    <!-- TODO: Localizzare Header GroupBox e TextBlock etichette -->
-                    <GroupBox Header="Contract Details" FontWeight="Bold">
+                    <GroupBox Header="{Binding Source={x:Static properties:Resources.ContractDetails_Header}, Mode=OneWay}" FontWeight="Bold">
                          <Grid>
                              <Grid.ColumnDefinitions> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="*"/> </Grid.ColumnDefinitions> <Grid.RowDefinitions> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> </Grid.RowDefinitions>
-                             <TextBlock Grid.Row="0" Grid.Column="0" Text="Company:" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Company, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
-                             <TextBlock Grid.Row="1" Grid.Column="0" Text="Contract Number:" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ContractNumber, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
-                             <TextBlock Grid.Row="2" Grid.Column="0" Text="Hourly Rate (€):" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="2" Grid.Column="1"> <TextBox.Text> <Binding Path="HourlyRate" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" StringFormat="N2"> <Binding.ValidationRules><ExceptionValidationRule /></Binding.ValidationRules> </Binding> </TextBox.Text> </TextBox>
-                             <TextBlock Grid.Row="3" Grid.Column="0" Text="Total Contract Hours:" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="3" Grid.Column="1"> <TextBox.Text> <Binding Path="TotalHours" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True"> <Binding.ValidationRules><ExceptionValidationRule /></Binding.ValidationRules> </Binding> </TextBox.Text> </TextBox>
-                             <TextBlock Grid.Row="4" Grid.Column="0" Text="Billed Hours:" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding BilledHours, Mode=OneWay, StringFormat='{}{0:F2} h'}" IsReadOnly="True" ToolTip="Calculated from billed lessons"/>
-                             <TextBlock Grid.Row="5" Grid.Column="0" Text="Start Date:" Style="{StaticResource LabelTextBlock}"/> <DatePicker Grid.Row="5" Grid.Column="1" SelectedDate="{Binding StartDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
-                             <TextBlock Grid.Row="6" Grid.Column="0" Text="End Date:" Style="{StaticResource LabelTextBlock}"/> <DatePicker Grid.Row="6" Grid.Column="1" SelectedDate="{Binding EndDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                             <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.ContractDetails_CompanyLabel}, Mode=OneWay}" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Company, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                             <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.ContractDetails_NumberLabel}, Mode=OneWay}" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding ContractNumber, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                             <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.ContractDetails_RateLabel}, Mode=OneWay}" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="2" Grid.Column="1"> <TextBox.Text> <Binding Path="HourlyRate" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True" StringFormat="N2"> <Binding.ValidationRules><ExceptionValidationRule /></Binding.ValidationRules> </Binding> </TextBox.Text> </TextBox>
+                             <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.ContractDetails_TotalHoursLabel}, Mode=OneWay}" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="3" Grid.Column="1"> <TextBox.Text> <Binding Path="TotalHours" UpdateSourceTrigger="PropertyChanged" ValidatesOnDataErrors="True"> <Binding.ValidationRules><ExceptionValidationRule /></Binding.ValidationRules> </Binding> </TextBox.Text> </TextBox>
+                             <TextBlock Grid.Row="4" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.ContractDetails_BilledHoursLabel}, Mode=OneWay}" Style="{StaticResource LabelTextBlock}"/> <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding BilledHours, Mode=OneWay, StringFormat='{}{0:F2} h'}" IsReadOnly="True" ToolTip="Calculated from billed lessons"/>
+                             <TextBlock Grid.Row="5" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.ContractDetails_StartDateLabel}, Mode=OneWay}" Style="{StaticResource LabelTextBlock}"/> <DatePicker Grid.Row="5" Grid.Column="1" SelectedDate="{Binding StartDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
+                             <TextBlock Grid.Row="6" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.ContractDetails_EndDateLabel}, Mode=OneWay}" Style="{StaticResource LabelTextBlock}"/> <DatePicker Grid.Row="6" Grid.Column="1" SelectedDate="{Binding EndDate, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
                          </Grid>
                     </GroupBox>
-                    <!-- TODO: Localizzare testi nel riepilogo -->
                     <Border Background="#FFF0F8FF" Padding="10" Margin="5,10" CornerRadius="4" MaxWidth="400">
-                         <StackPanel> <TextBlock Text="Summary" FontWeight="Bold" Margin="0,0,0,8" HorizontalAlignment="Center" FontSize="14"/> <TextBlock Text="Hours" FontWeight="SemiBold" Margin="0,0,0,3"/> <Grid HorizontalAlignment="Left"> <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto" MinWidth="40" /></Grid.ColumnDefinitions> <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions> <TextBlock Grid.Row="0" Grid.Column="0" Text="Inserted:" Margin="0,1,10,1" VerticalAlignment="Center"/> <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalInsertedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" /> <TextBlock Grid.Row="1" Grid.Column="0" Text="Confirmed:" Margin="0,1,10,1" VerticalAlignment="Center"/> <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalConfirmedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" /> <TextBlock Grid.Row="2" Grid.Column="0" Text="Billed:" Margin="0,1,10,1" VerticalAlignment="Center"/> <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding BilledHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" /> </Grid> <Separator Margin="0,8"/> <TextBlock Text="Amounts (€)" FontWeight="SemiBold" Margin="0,0,0,3"/> <Grid HorizontalAlignment="Left"> <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto" MinWidth="60" /></Grid.ColumnDefinitions> <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions> <TextBlock Grid.Row="0" Grid.Column="0" Text="Potential Total:" Margin="0,1,10,1" VerticalAlignment="Center" ToolTip="Total amount for all inserted lessons"/> <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalPotentialAmount, StringFormat=C, ConverterCulture=it-IT}" VerticalAlignment="Center" /> <TextBlock Grid.Row="1" Grid.Column="0" Text="Ready to Bill:" Margin="0,1,10,1" VerticalAlignment="Center" ToolTip="Amount for Confirmed but not yet Billed lessons"/> <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalConfirmedUnbilledAmount, StringFormat=C, ConverterCulture=it-IT}" VerticalAlignment="Center" FontWeight="Bold"/> <TextBlock Grid.Row="2" Grid.Column="0" Text="Already Billed:" Margin="0,1,10,1" VerticalAlignment="Center"/> <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalBilledAmount, StringFormat=C, ConverterCulture=it-IT}" VerticalAlignment="Center" /> <TextBlock Grid.Row="3" Grid.Column="0" Text="Remaining Contract Hours:" Margin="0,5,10,1" VerticalAlignment="Center" FontWeight="SemiBold"/> <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding RemainingHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" /> </Grid> </StackPanel>
+                         <StackPanel> <TextBlock Text="{Binding Source={x:Static properties:Resources.SummaryBox_Title}, Mode=OneWay}" FontWeight="Bold" Margin="0,0,0,8" HorizontalAlignment="Center" FontSize="14"/> <TextBlock Text="{Binding Source={x:Static properties:Resources.SummaryBox_HoursTitle}, Mode=OneWay}" FontWeight="SemiBold" Margin="0,0,0,3"/> <Grid HorizontalAlignment="Left"> <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto" MinWidth="40" /></Grid.ColumnDefinitions> <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions> <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_InsertedLabel}, Mode=OneWay}" Margin="0,1,10,1" VerticalAlignment="Center"/> <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalInsertedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" /> <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_ConfirmedLabel}, Mode=OneWay}" Margin="0,1,10,1" VerticalAlignment="Center"/> <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalConfirmedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" /> <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_BilledLabel}, Mode=OneWay}" Margin="0,1,10,1" VerticalAlignment="Center"/> <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding BilledHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" /> </Grid> <Separator Margin="0,8"/> <TextBlock Text="{Binding Source={x:Static properties:Resources.SummaryBox_AmountsTitle}, Mode=OneWay}" FontWeight="SemiBold" Margin="0,0,0,3"/> <Grid HorizontalAlignment="Left"> <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto" MinWidth="60" /></Grid.ColumnDefinitions> <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions> <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_PotentialLabel}, Mode=OneWay}" Margin="0,1,10,1" VerticalAlignment="Center" ToolTip="Total amount for all inserted lessons"/> <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalPotentialAmount, StringFormat=C, ConverterCulture=it-IT}" VerticalAlignment="Center" /> <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_ReadyToBillLabel}, Mode=OneWay}" Margin="0,1,10,1" VerticalAlignment="Center" ToolTip="Amount for Confirmed but not yet Billed lessons"/> <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalConfirmedUnbilledAmount, StringFormat=C, ConverterCulture=it-IT}" VerticalAlignment="Center" FontWeight="Bold"/> <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_AlreadyBilledLabel}, Mode=OneWay}" Margin="0,1,10,1" VerticalAlignment="Center"/> <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalBilledAmount, StringFormat=C, ConverterCulture=it-IT}" VerticalAlignment="Center" /> <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_RemainingHoursLabel}, Mode=OneWay}" Margin="0,5,10,1" VerticalAlignment="Center" FontWeight="SemiBold"/> <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding RemainingHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" /> </Grid> </StackPanel>
                     </Border>
-                    <!-- RIMOSSO Save Contract da qui -->
+                    <!-- Save Contract è stato spostato in alto -->
                 </StackPanel>
             </ScrollViewer>
              <GridSplitter Grid.Row="1" Height="5" HorizontalAlignment="Stretch" VerticalAlignment="Center" Background="Gainsboro" Margin="0,5"/>
+            <!-- ContentControl per LessonView -->
             <ContentControl Grid.Row="2" Content="{Binding}" Margin="0,5,0,0"/>
         </Grid> <!-- Fine Grid Colonna Destra -->
     </Grid>

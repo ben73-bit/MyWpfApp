@@ -157,6 +157,209 @@
    <data name="Button_UpdateLesson" xml:space="preserve">
     <value>Aggiorna Lezione</value>
   </data>
+    <!-- Messaggi Errore Validazione -->
+  <data name="Validation_FieldRequired" xml:space="preserve">
+    <value>Il campo '{0}' è obbligatorio.</value>
+  </data>
+  <data name="Validation_PositiveNumber" xml:space="preserve">
+    <value>Il campo '{0}' deve essere positivo.</value>
+  </data>
+  <data name="Validation_MinimumValue" xml:space="preserve">
+    <value>Il campo '{0}' deve essere almeno {1}.</value>
+  </data>
+  <data name="Validation_CannotBeNegative" xml:space="preserve">
+    <value>Il campo '{0}' non può essere negativo.</value>
+  </data>
+  <data name="Validation_EndDateAfterStartDate" xml:space="preserve">
+    <value>La data di fine deve essere successiva alla data di inizio.</value>
+  </data>
+   <data name="Validation_TimeSpanPositive" xml:space="preserve">
+    <value>Il campo '{0}' deve essere positivo.</value>
+  </data>
+    <!-- ... (Stringhe esistenti e di validazione) ... -->
+
+  <!-- Titoli MessageBox -->
+  <data name="MsgBox_Title_ConfirmRemoval" xml:space="preserve">
+    <value>Conferma Rimozione</value>
+  </data>
+  <data name="MsgBox_Title_ConfirmContractDeletion" xml:space="preserve">
+    <value>Conferma Eliminazione Contratto</value>
+  </data>
+  <data name="MsgBox_Title_NoContractSelected" xml:space="preserve">
+    <value>Nessun Contratto Selezionato</value>
+  </data>
+  <data name="MsgBox_Title_ImportResult" xml:space="preserve">
+    <value>Risultato Importazione</value>
+  </data>
+  <data name="MsgBox_Title_ImportComplete" xml:space="preserve">
+    <value>Importazione Completata</value>
+  </data>
+  <data name="MsgBox_Title_ImportError" xml:space="preserve">
+    <value>Errore di Importazione</value>
+  </data>
+  <data name="MsgBox_Title_Export" xml:space="preserve">
+    <value>Esportazione</value>
+  </data>
+  <data name="MsgBox_Title_ExportComplete" xml:space="preserve">
+    <value>Esportazione Completata</value>
+  </data>
+  <data name="MsgBox_Title_ExportError" xml:space="preserve">
+    <value>Errore di Esportazione</value>
+  </data>
+  <data name="MsgBox_Title_Billing" xml:space="preserve">
+    <value>Fatturazione</value>
+  </data>
+  <data name="MsgBox_Title_BillingComplete" xml:space="preserve">
+    <value>Fatturazione Completata</value>
+  </data>
+  <data name="MsgBox_Title_ValidationError" xml:space="preserve">
+    <value>Errore di Validazione</value>
+  </data>
+  <data name="MsgBox_Title_InternalError" xml:space="preserve">
+    <value>Errore Interno</value>
+  </data>
+  <data name="MsgBox_Title_SaveError" xml:space="preserve">
+    <value>Errore Salvataggio</value>
+  </data>
+   <data name="MsgBox_Title_SaveContract" xml:space="preserve">
+    <value>Salva Contratto</value>
+  </data>
+
+  <!-- Messaggi MessageBox -->
+  <data name="MsgBox_ConfirmRemoveLesson_Text" xml:space="preserve">
+    <value>Rimuovere la lezione del {0:g}?</value>
+  </data>
+  <data name="MsgBox_ConfirmRemoveSelectedLesson_Text_Singular" xml:space="preserve">
+    <value>Rimuovere la lezione selezionata?</value>
+  </data>
+  <data name="MsgBox_ConfirmRemoveSelectedLessons_Text_Plural" xml:space="preserve">
+    <value>Rimuovere le {0} lezioni selezionate?</value>
+  </data>
+  <data name="MsgBox_ConfirmContractDeletion_Text" xml:space="preserve">
+    <value>Sei sicuro di voler eliminare il contratto '{0} - {1}'?\nQuesto eliminerà anche tutte le lezioni associate.</value>
+  </data>
+  <data name="MsgBox_SelectContractBeforeImport_Text" xml:space="preserve">
+    <value>Selezionare un contratto prima di importare le lezioni.</value>
+  </data>
+  <data name="MsgBox_NoLessonsToImport_Text" xml:space="preserve">
+    <value>Nessun evento lezione valido trovato nel file selezionato.</value>
+  </data>
+   <data name="MsgBox_ImportSuccessful_Text" xml:space="preserve">
+    <value>{0} lezioni importate con successo.</value>
+  </data>
+   <data name="MsgBox_ImportError_Text" xml:space="preserve">
+    <value>Si è verificato un errore durante l'importazione del file:\n{0}</value>
+  </data>
+   <data name="MsgBox_SelectContractBeforeExport_Text" xml:space="preserve">
+    <value>Selezionare un contratto per esportare le relative lezioni.</value>
+  </data>
+   <data name="MsgBox_NoLessonsToExport_Text" xml:space="preserve">
+    <value>Non ci sono lezioni da esportare per questo contratto.</value>
+  </data>
+   <data name="MsgBox_ExportSuccessful_Text" xml:space="preserve">
+    <value>Lezioni esportate con successo in:\n{0}</value>
+  </data>
+   <data name="MsgBox_ExportError_Text" xml:space="preserve">
+    <value>Si è verificato un errore durante l'esportazione.</value>
+  </data>
+   <data name="MsgBox_ExportFileError_Text" xml:space="preserve">
+    <value>Si è verificato un errore durante l'esportazione del file:\n{0}</value>
+  </data>
+   <data name="MsgBox_NoLessonsToBill_Text" xml:space="preserve">
+    <value>Nessuna lezione confermata e non fatturata selezionata.</value>
+  </data>
+   <data name="MsgBox_InvoiceNumberEmpty_Text" xml:space="preserve">
+    <value>Il numero di fattura non può essere vuoto.</value>
+  </data>
+   <data name="MsgBox_InvoiceDateNotSelected_Text" xml:space="preserve">
+    <value>Selezionare una data per la fattura.</value>
+  </data>
+   <data name="MsgBox_InvoiceDateError_Text" xml:space="preserve">
+    <value>Data fattura non selezionata correttamente.</value>
+  </data>
+   <data name="MsgBox_BillingSuccessful_Text" xml:space="preserve">
+    <value>{0} lezioni contrassegnate come fatturate con Fattura n. {1} del {2:d}.</value>
+  </data>
+   <data name="MsgBox_SaveError_Text" xml:space="preserve">
+    <value>Impossibile salvare i dati utente. Verificare i permessi o lo spazio su disco.</value>
+  </data>
+   <data name="MsgBox_SaveErrorUnknown_Text" xml:space="preserve">
+    <value>Impossibile salvare i dati utente. Si è verificato un errore sconosciuto.</value>
+  </data>
+   <data name="MsgBox_SaveErrorCritical_Text" xml:space="preserve">
+    <value>Si è verificato un errore imprevisto durante il tentativo di salvare i dati:\n{0}</value>
+  </data>
+   <data name="MsgBox_SaveContractNoted_Text" xml:space="preserve">
+    <value>Modifiche al contratto '{0}' annotate (verranno salvate all'uscita o con Salva Tutto).</value>
+  </data>
+    <!-- ... altre stringhe ... -->
+  <data name="Validation_InvalidTimeFormat" xml:space="preserve">
+    <value>Formato Ora Inizio non valido (usare HH:MM).</value>
+  </data>
+    <!-- ... (stringhe esistenti) ... -->
+  <!-- Stringhe ContractView -->
+  <data name="ContractDetails_Header" xml:space="preserve">
+    <value>Dettagli Contratto</value>
+  </data>
+  <data name="ContractDetails_CompanyLabel" xml:space="preserve">
+    <value>Azienda:</value>
+  </data>
+  <data name="ContractDetails_NumberLabel" xml:space="preserve">
+    <value>Numero Contratto:</value>
+  </data>
+  <data name="ContractDetails_RateLabel" xml:space="preserve">
+    <value>Tariffa Oraria (€):</value>
+  </data>
+  <data name="ContractDetails_TotalHoursLabel" xml:space="preserve">
+    <value>Ore Totali Contratto:</value>
+  </data>
+  <data name="ContractDetails_BilledHoursLabel" xml:space="preserve">
+    <value>Ore Fatturate:</value>
+  </data>
+  <data name="ContractDetails_StartDateLabel" xml:space="preserve">
+    <value>Data Inizio:</value>
+  </data>
+  <data name="ContractDetails_EndDateLabel" xml:space="preserve">
+    <value>Data Fine:</value>
+  </data>
+  <data name="SummaryBox_Title" xml:space="preserve">
+    <value>Riepilogo</value>
+  </data>
+  <data name="SummaryBox_HoursTitle" xml:space="preserve">
+    <value>Ore</value>
+  </data>
+  <data name="SummaryBox_InsertedLabel" xml:space="preserve">
+    <value>Inserite:</value>
+  </data>
+  <data name="SummaryBox_ConfirmedLabel" xml:space="preserve">
+    <value>Confermate:</value>
+  </data>
+  <data name="SummaryBox_BilledLabel" xml:space="preserve">
+    <value>Fatturate:</value>
+  </data>
+  <data name="SummaryBox_AmountsTitle" xml:space="preserve">
+    <value>Importi (€)</value>
+  </data>
+  <data name="SummaryBox_PotentialLabel" xml:space="preserve">
+    <value>Potenziale Totale:</value>
+  </data>
+  <data name="SummaryBox_ReadyToBillLabel" xml:space="preserve">
+    <value>Da Fatturare:</value>
+  </data>
+  <data name="SummaryBox_AlreadyBilledLabel" xml:space="preserve">
+    <value>Già Fatturato:</value>
+  </data>
+  <data name="SummaryBox_RemainingHoursLabel" xml:space="preserve">
+    <value>Ore Residue Contratto:</value>
+  </data>
+    <!-- ... (stringhe esistenti) ... -->
+  <!-- Intestazioni Lista Contratti -->
+  <data name="ContractList_CompanyHeader" xml:space="preserve">
+    <value>Azienda</value>
+  </data>
+  <data name="ContractList_NumberHeader" xml:space="preserve">
+    <value>Numero Contratto</value>
+  </data>
   <!-- Aggiungi qui i tuoi dati <data name="..." xml:space="preserve"><value>...</value></data> -->
   <!-- Esempio: -->
   <!-- <data name="HelloWorld" xml:space="preserve"> -->
