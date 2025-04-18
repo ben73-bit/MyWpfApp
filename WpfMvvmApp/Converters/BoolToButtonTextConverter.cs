@@ -1,6 +1,8 @@
+// WpfMvvmApp/Converters/BoolToButtonTextConverter.cs
 using System;
 using System.Globalization;
 using System.Windows.Data;
+using WpfMvvmApp.Properties; // AGGIUNGI using per accedere a Resources
 
 namespace WpfMvvmApp.Converters
 {
@@ -8,17 +10,19 @@ namespace WpfMvvmApp.Converters
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is bool isEditing && isEditing)
+            if (value is bool isEditing)
             {
-                return "Update Lesson"; // Testo quando si sta modificando
+                // Legge la stringa appropriata dalle risorse
+                return isEditing ? Resources.Button_UpdateLesson ?? "Update Lesson"
+                                 : Resources.Button_AddLesson ?? "Add Lesson";
             }
-            return "Add Lesson"; // Testo predefinito per aggiungere
+            // Fallback se il valore non è booleano
+            return Resources.Button_AddLesson ?? "Add Lesson";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            // La conversione inversa non è necessaria per questo scenario
-            throw new NotImplementedException();
+            throw new NotImplementedException(); // Non necessario
         }
     }
 }

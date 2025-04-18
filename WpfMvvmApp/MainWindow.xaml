@@ -6,8 +6,9 @@
         xmlns:local="clr-namespace:WpfMvvmApp"
         xmlns:vm="clr-namespace:WpfMvvmApp.ViewModels"
         xmlns:views="clr-namespace:WpfMvvmApp.Views"
+        xmlns:properties="clr-namespace:WpfMvvmApp.Properties"
         mc:Ignorable="d"
-        Title="ControllOre" Height="450" Width="800">
+        Title="{Binding Source={x:Static properties:Resources.AppName}, Mode=OneWay}">
 
     <Window.DataContext>
         <vm:MainViewModel/>

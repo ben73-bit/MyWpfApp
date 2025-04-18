@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- Schema e Intestazioni ResX -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+    <data name="AppName" xml:space="preserve">
+    <value>ControllOre</value>
+  </data>
+  <data name="AddContractButton_Content" xml:space="preserve">
+    <value>Aggiungi Contratto</value>
+  </data>
+   <data name="RemoveContractButton_Content" xml:space="preserve">
+    <value>Rimuovi Selezionato</value>
+  </data>
+  <data name="SaveContractButton_Content" xml:space="preserve">
+    <value>Salva Contratto</value>
+  </data>
+  <data name="ContractsTitle" xml:space="preserve">
+    <value>Contratti</value>
+  </data>
+    <!-- ... (Stringhe esistenti) ... -->
+  <data name="LessonsTitle" xml:space="preserve">
+    <value>Lezioni</value>
+  </data>
+  <data name="BillSelectedButton_Content" xml:space="preserve">
+    <value>Fattura Selezionate</value>
+  </data>
+  <data name="ImportIcsButton_Content" xml:space="preserve">
+    <value>Importa (.ics)</value>
+  </data>
+  <data name="ExportIcsButton_Content" xml:space="preserve">
+    <value>Esporta (.ics)</value>
+  </data>
+  <data name="LessonInput_StartLabel" xml:space="preserve">
+    <value>Inizio:</value>
+  </data>
+  <data name="LessonInput_TimeSeparatorLabel" xml:space="preserve">
+    <value>alle</value>
+  </data>
+  <data name="LessonInput_TimeToolTip" xml:space="preserve">
+    <value>Ora Inizio (HH:MM)</value>
+  </data>
+  <data name="LessonInput_DurationLabel" xml:space="preserve">
+    <value>Durata:</value>
+  </data>
+  <data name="LessonInput_DurationToolTip" xml:space="preserve">
+    <value>Durata (HH:MM)</value>
+  </data>
+  <data name="LessonInput_SummaryLabel" xml:space="preserve">
+    <value>Oggetto:</value>
+  </data>
+  <data name="LessonInput_SummaryToolTip" xml:space="preserve">
+    <value>Oggetto/Titolo Lezione</value>
+  </data>
+  <data name="LessonList_DateHeader" xml:space="preserve">
+    <value>Data</value>
+  </data>
+  <data name="LessonList_StartHeader" xml:space="preserve">
+    <value>Inizio</value>
+  </data>
+  <data name="LessonList_DurationHeader" xml:space="preserve">
+    <value>Durata</value>
+  </data>
+  <data name="LessonList_EndHeader" xml:space="preserve">
+    <value>Fine</value>
+  </data>
+  <data name="LessonList_SummaryHeader" xml:space="preserve">
+    <value>Oggetto</value>
+  </data>
+   <data name="LessonList_AmountHeader" xml:space="preserve">
+    <value>Importo (€)</value>
+  </data>
+  <data name="LessonList_ConfirmedHeader" xml:space="preserve">
+    <value>Confermata</value>
+  </data>
+  <data name="LessonList_BilledHeader" xml:space="preserve">
+    <value>Fatturata</value>
+  </data>
+  <data name="LessonList_InvoiceNumberHeader" xml:space="preserve">
+    <value>Rif. Fattura</value>
+  </data>
+  <data name="LessonList_InvoiceDateHeader" xml:space="preserve">
+    <value>Data Fattura</value>
+  </data>
+  <data name="LessonList_ActionsHeader" xml:space="preserve">
+    <value>Azioni</value>
+  </data>
+  <data name="LessonActions_EditButton_Content" xml:space="preserve">
+    <value>Modifica</value>
+  </data>
+   <data name="LessonActions_RemoveButton_Content" xml:space="preserve">
+    <value>Rimuovi</value>
+  </data>
+   <data name="LessonActions_CancelButton_Content" xml:space="preserve">
+    <value>Annulla</value>
+  </data>
+  <!-- Stringhe per BoolToButtonTextConverter -->
+   <data name="Button_AddLesson" xml:space="preserve">
+    <value>Aggiungi Lezione</value>
+  </data>
+   <data name="Button_UpdateLesson" xml:space="preserve">
+    <value>Aggiorna Lezione</value>
+  </data>
+  <!-- Aggiungi qui i tuoi dati <data name="..." xml:space="preserve"><value>...</value></data> -->
+  <!-- Esempio: -->
+  <!-- <data name="HelloWorld" xml:space="preserve"> -->
+  <!--   <value>Hello, World!</value> -->
+  <!-- </data> -->
+
+</root>
