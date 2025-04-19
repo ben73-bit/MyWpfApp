@@ -375,4 +375,7 @@
   <data name="ContractList_NumberHeader" xml:space="preserve">
     <value>Contract Number</value>
   </data>
+  <data name="MsgBox_NoNewLessonsImported_Text" xml:space="preserve">
+    <value>No new lessons found to import. This might happen if all lessons in the file already exist in the contract or if the file was empty.</value>
+  </data>
 </root>

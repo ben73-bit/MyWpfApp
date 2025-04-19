@@ -169,6 +169,9 @@ namespace WpfMvvmApp.Properties
         // NUOVE: Intestazioni Lista Contratti
         public static string? ContractList_CompanyHeader => GetString("ContractList_CompanyHeader");
         public static string? ContractList_NumberHeader => GetString("ContractList_NumberHeader");
+
+        public static string? MsgBox_NoNewLessonsImported_Text { get; internal set; }
+
         // --- Fine Proprietà Stringhe ---
 
         // Costruttore privato
