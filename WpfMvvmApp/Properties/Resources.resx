@@ -378,4 +378,21 @@
   <data name="MsgBox_NoNewLessonsImported_Text" xml:space="preserve">
     <value>No new lessons found to import. This might happen if all lessons in the file already exist in the contract or if the file was empty.</value>
   </data>
+  <data name="LessonActions_DuplicateButton_Content" xml:space="preserve">
+    <value>Duplicate</value>
+  </data>
+  <data name="LessonActions_DuplicateButton_ToolTip" xml:space="preserve">
+    <value>Create a copy of this lesson</value>
+  </data>
+  <data name="LessonActions_EditButton_ToolTip" xml:space="preserve">
+    <value>Edit this lesson</value>
+  </data>
+  <!-- Aggiungi queste due voci mancanti in Resources.resx -->
+<data name="LessonActions_RemoveButton_ToolTip" xml:space="preserve">
+  <value>Remove this lesson</value>
+</data>
+<data name="MsgBox_GenericError_Text" xml:space="preserve">
+  <value>An unexpected error occurred.</value>
+
+</data>
 </root>

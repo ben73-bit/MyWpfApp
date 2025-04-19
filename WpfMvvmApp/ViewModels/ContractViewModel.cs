@@ -10,7 +10,6 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
-// using System.Windows.Data; // Non serve più
 using System.Windows.Input;
 using WpfMvvmApp.Models;
 using WpfMvvmApp.Services;
@@ -98,6 +97,7 @@ namespace WpfMvvmApp.ViewModels
         public ICommand ImportLessonsCommand { get; }
         public ICommand ExportLessonsCommand { get; }
         public ICommand BillSelectedLessonsCommand { get; }
+        public ICommand DuplicateLessonCommand { get; } // NUOVO COMANDO
 
         // Costruttore
         public ContractViewModel(Contract contract, IDialogService dialogService, ICalService calService)
@@ -105,6 +105,8 @@ namespace WpfMvvmApp.ViewModels
             _contract = contract ?? throw new ArgumentNullException(nameof(contract));
             _dialogService = dialogService ?? throw new ArgumentNullException(nameof(dialogService));
             _calService = calService ?? throw new ArgumentNullException(nameof(calService));
+
+            // Comandi esistenti
             AddLessonCommand = new RelayCommand(ExecuteAddOrUpdateLesson, CanExecuteAddOrUpdateLesson);
             EditLessonCommand = new RelayCommand(ExecuteEditLesson, CanExecuteEditOrRemoveLesson);
             RemoveLessonCommand = new RelayCommand(ExecuteRemoveLesson, CanExecuteEditOrRemoveLesson);
@@ -114,6 +116,10 @@ namespace WpfMvvmApp.ViewModels
             ImportLessonsCommand = new RelayCommand(ExecuteImportLessons, CanExecuteImportExportLessons);
             ExportLessonsCommand = new RelayCommand(ExecuteExportLessons, CanExecuteImportExportLessons);
             BillSelectedLessonsCommand = new RelayCommand(ExecuteBillSelectedLessons, CanExecuteBillSelectedLessons);
+
+            // NUOVO: Istanziazione comando Duplica
+            DuplicateLessonCommand = new RelayCommand(ExecuteDuplicateLesson, CanExecuteDuplicateLesson);
+
             LoadLessons();
             NotifyAllCanExecuteChanged();
         }
@@ -146,13 +152,23 @@ namespace WpfMvvmApp.ViewModels
         public bool IsLessonInputValid => TryParseTime(NewLessonStartTimeString, out _) && NewLessonDuration > TimeSpan.Zero;
         // --- Fine IDataErrorInfo ---
 
-        // Helper Notifica CanExecute
-        private void NotifyAllCanExecuteChanged() { (AddLessonCommand as RelayCommand)?.RaiseCanExecuteChanged(); (EditLessonCommand as RelayCommand)?.RaiseCanExecuteChanged(); (RemoveLessonCommand as RelayCommand)?.RaiseCanExecuteChanged(); (RemoveSelectedLessonsCommand as RelayCommand)?.RaiseCanExecuteChanged(); (CancelEditLessonCommand as RelayCommand)?.RaiseCanExecuteChanged(); (ToggleLessonConfirmationCommand as RelayCommand)?.RaiseCanExecuteChanged(); (ImportLessonsCommand as RelayCommand)?.RaiseCanExecuteChanged(); (ExportLessonsCommand as RelayCommand)?.RaiseCanExecuteChanged(); (BillSelectedLessonsCommand as RelayCommand)?.RaiseCanExecuteChanged(); }
+        // Helper Notifica CanExecute - AGGIORNATO
+        private void NotifyAllCanExecuteChanged()
+        {
+            (AddLessonCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (EditLessonCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (RemoveLessonCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (RemoveSelectedLessonsCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (CancelEditLessonCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (ToggleLessonConfirmationCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (ImportLessonsCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (ExportLessonsCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (BillSelectedLessonsCommand as RelayCommand)?.RaiseCanExecuteChanged();
+            (DuplicateLessonCommand as RelayCommand)?.RaiseCanExecuteChanged(); // Aggiunto
+        }
 
 
         // --- Metodi Esecuzione Comandi Lezione ---
-
-        // MODIFICATO: Logica di aggiunta per inserimento ordinato
         private void ExecuteAddOrUpdateLesson(object? parameter)
         {
             if (Contract == null || !CanExecuteAddOrUpdateLesson(parameter)) return;
@@ -167,13 +183,15 @@ namespace WpfMvvmApp.ViewModels
 
             if (IsEditingLesson && _lessonToEdit != null)
             {
+                var oldStartTime = _lessonToEdit.StartDateTime; // Salva l'ora di inizio originale
                 var oldDuration = _lessonToEdit.Duration;
-                _lessonToEdit.StartDateTime = finalStartDateTime; // L'aggiornamento può cambiare l'ordine
+
+                _lessonToEdit.StartDateTime = finalStartDateTime; // Aggiorna data/ora
                 _lessonToEdit.Duration = NewLessonDuration;
                 _lessonToEdit.Summary = NewLessonSummary;
 
-                // Se l'ora è cambiata, riordiniamo la lista UI (approccio semplice ma efficace)
-                if (_lessonToEdit.StartDateTime != finalStartDateTime)
+                // Se l'ora o la data sono cambiate, dobbiamo riordinare la lista UI
+                if (_lessonToEdit.StartDateTime != oldStartTime)
                 {
                     // Riordina la ObservableCollection dopo la modifica
                     var sortedLessons = Lessons.OrderBy(l => l.StartDateTime).ToList();
@@ -188,20 +206,17 @@ namespace WpfMvvmApp.ViewModels
                 // Aggiunta di una nuova lezione
                 var newLesson = new Lesson
                 {
-                    Uid = Guid.NewGuid().ToString(), // Assicurati che le nuove lezioni abbiano un UID
+                    Uid = Guid.NewGuid().ToString(),
                     StartDateTime = finalStartDateTime,
                     Duration = NewLessonDuration,
-                    Contract = Contract, // Riferimento al contratto
+                    Contract = Contract,
                     IsConfirmed = false,
                     Summary = NewLessonSummary,
-                    // Altri campi (IsBilled, InvoiceNumber, etc.) avranno valori default
                 };
 
-                // Aggiungi alla lista del modello (verrà ordinata al prossimo LoadLessons)
                 Contract.Lessons ??= new List<Lesson>();
                 Contract.Lessons.Add(newLesson);
 
-                // Inserisci nella ObservableCollection mantenendo l'ordine
                 int index = FindInsertionIndex(newLesson);
                 Lessons.Insert(index, newLesson);
 
@@ -219,11 +234,11 @@ namespace WpfMvvmApp.ViewModels
 
         private bool CanExecuteAddOrUpdateLesson(object? parameter) { return Contract != null && IsLessonInputValid; }
 
-        private void ExecuteEditLesson(object? parameter) { if (parameter is Lesson lessonToEdit) { IsEditingLesson = true; _lessonToEdit = lessonToEdit; NewLessonDate = lessonToEdit.StartDateTime.Date; NewLessonStartTimeString = lessonToEdit.StartDateTime.ToString("HH:mm"); NewLessonDuration = lessonToEdit.Duration; NewLessonSummary = lessonToEdit.Summary; } }
+        private void ExecuteEditLesson(object? parameter) { if (parameter is Lesson lessonToEdit && CanExecuteEditOrRemoveLesson(parameter)) { IsEditingLesson = true; _lessonToEdit = lessonToEdit; NewLessonDate = lessonToEdit.StartDateTime.Date; NewLessonStartTimeString = lessonToEdit.StartDateTime.ToString("HH:mm"); NewLessonDuration = lessonToEdit.Duration; NewLessonSummary = lessonToEdit.Summary; } }
 
-        private void ExecuteRemoveLesson(object? parameter) { if (parameter is Lesson lessonToRemove && Contract?.Lessons != null && CanExecuteEditOrRemoveLesson(parameter)) { var result = MessageBox.Show(string.Format(Resources.MsgBox_ConfirmRemoveLesson_Text ?? "Remove lesson starting {0:g}?", lessonToRemove.StartDateTime), Resources.MsgBox_Title_ConfirmRemoval ?? "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning); if (result == MessageBoxResult.Yes) { bool removed = Lessons.Remove(lessonToRemove); Contract.Lessons?.Remove(lessonToRemove); if (removed) { NotifyBillingRelatedChanges(); } } } }
+        private void ExecuteRemoveLesson(object? parameter) { if (parameter is Lesson lessonToRemove && Contract?.Lessons != null && CanExecuteEditOrRemoveLesson(parameter)) { var result = MessageBox.Show(string.Format(Resources.MsgBox_ConfirmRemoveLesson_Text ?? "Remove lesson starting {0:g}?", lessonToRemove.StartDateTime), Resources.MsgBox_Title_ConfirmRemoval ?? "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning); if (result == MessageBoxResult.Yes) { bool removedFromView = Lessons.Remove(lessonToRemove); bool removedFromModel = Contract.Lessons?.Remove(lessonToRemove) ?? false; if (removedFromView || removedFromModel) { NotifyBillingRelatedChanges(); } } } }
 
-        private void ExecuteRemoveSelectedLessons(object? parameter) { if (parameter is not IList selectedItems || selectedItems.Count == 0 || Contract?.Lessons == null || !CanExecuteRemoveSelectedLessons(parameter)) return; string message = selectedItems.Count == 1 ? Resources.MsgBox_ConfirmRemoveSelectedLesson_Text_Singular ?? "Remove selected lesson?" : string.Format(Resources.MsgBox_ConfirmRemoveSelectedLessons_Text_Plural ?? "Remove {0} selected lessons?", selectedItems.Count); var result = MessageBox.Show(message, Resources.MsgBox_Title_ConfirmRemoval ?? "Confirm Removal", MessageBoxButton.YesNo, MessageBoxImage.Warning); if (result == MessageBoxResult.Yes) { bool lessonsRemoved = false; var lessonsToRemove = selectedItems.OfType<Lesson>().ToList(); foreach (var lesson in lessonsToRemove) { bool removed = Lessons.Remove(lesson); Contract.Lessons?.Remove(lesson); if (removed) { lessonsRemoved = true; } } if (lessonsRemoved) { NotifyBillingRelatedChanges(); } } }
+        private void ExecuteRemoveSelectedLessons(object? parameter) { if (parameter is not IList selectedItems || selectedItems.Count == 0 || Contract?.Lessons == null || !CanExecuteRemoveSelectedLessons(parameter)) return; string message = selectedItems.Count == 1 ? Resources.MsgBox_ConfirmRemoveSelectedLesson_Text_Singular ?? "Remove selected lesson?" : string.Format(Resources.MsgBox_ConfirmRemoveSelectedLessons_Text_Plural ?? "Remove {0} selected lessons?", selectedItems.Count); var result = MessageBox.Show(message, Resources.MsgBox_Title_ConfirmRemoval ?? "Confirm Removal", MessageBoxButton.YesNo, MessageBoxImage.Warning); if (result == MessageBoxResult.Yes) { bool lessonsRemoved = false; var lessonsToRemove = selectedItems.OfType<Lesson>().ToList(); foreach (var lesson in lessonsToRemove) { bool removedFromView = Lessons.Remove(lesson); bool removedFromModel = Contract.Lessons?.Remove(lesson) ?? false; if (removedFromView || removedFromModel) { lessonsRemoved = true; } } if (lessonsRemoved) { NotifyBillingRelatedChanges(); } } }
 
         private bool CanExecuteRemoveSelectedLessons(object? parameter) { if (IsEditingLesson) return false; return parameter is IList selectedItems && selectedItems.Count > 0; }
 
@@ -237,7 +252,56 @@ namespace WpfMvvmApp.ViewModels
 
         private bool CanExecuteEditOrRemoveLesson(object? parameter) { return parameter is Lesson && !IsEditingLesson; }
 
-        // MODIFICATO: Logica di importazione per inserimento ordinato
+        // NUOVO: Metodo Esecuzione Duplica Lezione
+        private void ExecuteDuplicateLesson(object? parameter)
+        {
+            if (parameter is not Lesson originalLesson || Contract == null || !CanExecuteDuplicateLesson(parameter))
+                return;
+
+            try
+            {
+                // Crea la nuova lezione copiando i dati rilevanti
+                var duplicatedLesson = new Lesson
+                {
+                    Uid = Guid.NewGuid().ToString(), // Nuovo UID univoco
+                    StartDateTime = originalLesson.StartDateTime, // Mantiene data e ora originali
+                    Duration = originalLesson.Duration,
+                    Summary = originalLesson.Summary,
+                    Description = originalLesson.Description,
+                    Location = originalLesson.Location,
+                    Contract = this.Contract,
+
+                    // Resetta gli stati
+                    IsConfirmed = false,
+                    IsBilled = false,
+                    InvoiceNumber = null,
+                    InvoiceDate = null
+                };
+
+                Contract.Lessons ??= new List<Lesson>();
+                Contract.Lessons.Add(duplicatedLesson);
+
+                int index = FindInsertionIndex(duplicatedLesson);
+                Lessons.Insert(index, duplicatedLesson);
+
+                NotifyBillingRelatedChanges();
+
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error duplicating lesson: {ex}");
+                MessageBox.Show(Resources.MsgBox_GenericError_Text ?? "An unexpected error occurred.",
+                                Resources.MsgBox_Title_InternalError ?? "Internal Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        // NUOVO: Metodo CanExecute Duplica Lezione
+        private bool CanExecuteDuplicateLesson(object? parameter)
+        {
+            return parameter is Lesson && !IsEditingLesson;
+        }
+
         private void ExecuteImportLessons(object? parameter)
         {
             if (Contract == null) { MessageBox.Show(Resources.MsgBox_SelectContractBeforeImport_Text ?? "Select contract first.", Resources.MsgBox_Title_NoContractSelected ?? "No Contract", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
@@ -255,27 +319,17 @@ namespace WpfMvvmApp.ViewModels
 
                 int addedCount = 0;
                 Contract.Lessons ??= new List<Lesson>();
-
-                // Ordina le lezioni importate prima di inserirle
-                imported = imported.OrderBy(l => l.StartDateTime).ToList();
+                imported = imported.OrderBy(l => l.StartDateTime).ToList(); // Ordina prima di inserire
 
                 foreach (var lesson in imported)
                 {
-                    // TODO: Aggiungere controllo duplicati qui se necessario (basato su Uid o StartDateTime/Duration)
-                    // Esempio base (salta se Uid esiste):
+                    // TODO: Controllo duplicati (es. basato su Uid o Start/Duration)
                     // if (Lessons.Any(l => l.Uid == lesson.Uid && !string.IsNullOrEmpty(lesson.Uid))) continue;
-                    // O se StartDateTime e Duration coincidono (più probabile senza Uid):
-                    // if (Lessons.Any(l => l.StartDateTime == lesson.StartDateTime && l.Duration == lesson.Duration)) continue;
 
-                    lesson.Contract = Contract; // Associa al contratto corrente
-
-                    // Aggiungi alla lista del modello
+                    lesson.Contract = Contract;
                     Contract.Lessons.Add(lesson);
-
-                    // Inserisci nella ObservableCollection mantenendo l'ordine
                     int index = FindInsertionIndex(lesson);
                     Lessons.Insert(index, lesson);
-
                     addedCount++;
                 }
 
@@ -312,19 +366,16 @@ namespace WpfMvvmApp.ViewModels
         public void UpdateCommandStates() { NotifyAllCanExecuteChanged(); }
         private bool TryParseTime(string? input, out TimeSpan result) { result = TimeSpan.Zero; if (string.IsNullOrWhiteSpace(input)) return false; return TimeSpan.TryParseExact(input, @"hh\:mm", CultureInfo.InvariantCulture, TimeSpanStyles.None, out result); }
 
-        // NUOVO METODO HELPER: Trova l'indice corretto per l'inserimento ordinato
+        // Metodo Helper per trovare indice inserimento
         private int FindInsertionIndex(Lesson newLesson)
         {
-            // Cerca il primo elemento nella lista UI
-            // la cui data/ora è maggiore di quella della nuova lezione.
             for (int i = 0; i < Lessons.Count; i++)
             {
                 if (newLesson.StartDateTime < Lessons[i].StartDateTime)
                 {
-                    return i; // Inserisci prima di questo elemento
+                    return i;
                 }
             }
-            // Se non trovi un elemento successivo, inserisci alla fine.
             return Lessons.Count;
         }
     }

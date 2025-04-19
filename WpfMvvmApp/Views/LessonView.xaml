@@ -107,12 +107,12 @@
                 <TextBlock Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.LessonInput_StartLabel}, Mode=OneWay}" VerticalAlignment="Center" Margin="0,0,5,0"/>
                 <DatePicker Grid.Column="1" SelectedDate="{Binding NewLessonDate, UpdateSourceTrigger=PropertyChanged}" Width="110" VerticalAlignment="Center" Margin="0,0,5,0"/>
                 <TextBlock Grid.Column="2" Text="{Binding Source={x:Static properties:Resources.LessonInput_TimeSeparatorLabel}, Mode=OneWay}" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <!-- TextBox Ora Inizio - MODIFICATO: Aggiunto GotFocus -->
+                <!-- TextBox Ora Inizio -->
                 <TextBox Grid.Column="3" Width="50" ToolTip="{Binding Source={x:Static properties:Resources.LessonInput_TimeToolTip}, Mode=OneWay}" Margin="0,0,10,0"
                          Text="{Binding NewLessonStartTimeString, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
                          GotFocus="TextBox_GotFocus_SelectAll"/>
                 <TextBlock Grid.Column="4" Text="{Binding Source={x:Static properties:Resources.LessonInput_DurationLabel}, Mode=OneWay}" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <!-- TextBox Durata - MODIFICATO: Aggiunto GotFocus -->
+                <!-- TextBox Durata -->
                 <TextBox Grid.Column="5" Width="55" ToolTip="{Binding Source={x:Static properties:Resources.LessonInput_DurationToolTip}, Mode=OneWay}" Margin="0,0,10,0"
                          Text="{Binding NewLessonDuration, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource TimeSpanHoursMinutesConverter}, ValidatesOnExceptions=True}"
                          GotFocus="TextBox_GotFocus_SelectAll"/>
@@ -184,13 +184,30 @@
                     </GridViewColumn>
                     <GridViewColumn Header="{Binding Source={x:Static properties:Resources.LessonList_InvoiceNumberHeader}, Mode=OneWay}" Width="90" DisplayMemberBinding="{Binding InvoiceNumber}" />
                     <GridViewColumn Header="{Binding Source={x:Static properties:Resources.LessonList_InvoiceDateHeader}, Mode=OneWay}" Width="90" DisplayMemberBinding="{Binding InvoiceDate, StringFormat='dd/MM/yyyy'}" />
+                    <!-- Colonna Azioni - MODIFICATA -->
                     <GridViewColumn Header="{Binding Source={x:Static properties:Resources.LessonList_ActionsHeader}, Mode=OneWay}" Width="Auto">
                         <GridViewColumn.CellTemplate>
                             <DataTemplate DataType="{x:Type models:Lesson}">
                                 <StackPanel Orientation="Horizontal">
-                                    <!-- Pulsanti Edit/Remove -->
-                                    <Button Content="{Binding Source={x:Static properties:Resources.LessonActions_EditButton_Content}, Mode=OneWay}" Command="{Binding DataContext.EditLessonCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}" ToolTip="Edit this lesson" />
-                                    <Button Content="{Binding Source={x:Static properties:Resources.LessonActions_RemoveButton_Content}, Mode=OneWay}" Style="{StaticResource RemoveButtonStyle}" Command="{Binding DataContext.RemoveLessonCommand, RelativeSource={RelativeSource AncestorType=ListView}}" CommandParameter="{Binding}" ToolTip="Remove this lesson"/>
+                                    <!-- Pulsante Modifica -->
+                                    <Button Content="{Binding Source={x:Static properties:Resources.LessonActions_EditButton_Content}, Mode=OneWay}"
+                                            Command="{Binding DataContext.EditLessonCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="{Binding Source={x:Static properties:Resources.LessonActions_EditButton_ToolTip}, Mode=OneWay}"
+                                            Margin="0,0,2,0"/>
+                                    <!-- NUOVO Pulsante Duplica -->
+                                    <Button Content="{Binding Source={x:Static properties:Resources.LessonActions_DuplicateButton_Content}, Mode=OneWay}"
+                                            Command="{Binding DataContext.DuplicateLessonCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="{Binding Source={x:Static properties:Resources.LessonActions_DuplicateButton_ToolTip}, Mode=OneWay}"
+                                            Margin="2,0"/>
+                                    <!-- Pulsante Rimuovi -->
+                                    <Button Content="{Binding Source={x:Static properties:Resources.LessonActions_RemoveButton_Content}, Mode=OneWay}"
+                                            Style="{StaticResource RemoveButtonStyle}"
+                                            Command="{Binding DataContext.RemoveLessonCommand, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="{Binding Source={x:Static properties:Resources.LessonActions_RemoveButton_ToolTip}, Mode=OneWay}"
+                                            Margin="2,0,0,0"/>
                                 </StackPanel>
                             </DataTemplate>
                         </GridViewColumn.CellTemplate>

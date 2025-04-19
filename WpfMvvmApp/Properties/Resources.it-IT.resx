@@ -362,8 +362,25 @@
   </data>
   <data name="MsgBox_NoNewLessonsImported_Text" xml:space="preserve">
     <value>Nessuna nuova lezione trovata da importare. Questo può accadere se tutte le lezioni nel file esistono già nel contratto o se il file era vuoto.</value>
-  </data><!-- Aggiungi qui i tuoi dati <data name="..." xml:space="preserve"><value>...</value></data> -->
-  <!-- Esempio: -->
+  </data>
+  <data name="LessonActions_DuplicateButton_Content" xml:space="preserve">
+    <value>Duplica</value>
+  </data>
+  <data name="LessonActions_DuplicateButton_ToolTip" xml:space="preserve">
+    <value>Crea una copia di questa lezione</value>
+  </data>
+  <data name="LessonActions_EditButton_ToolTip" xml:space="preserve">
+    <value>Modifica questa lezione</value>
+  </data>
+  <!-- Aggiungi queste due voci mancanti in Resources.it-IT.resx -->
+<data name="LessonActions_RemoveButton_ToolTip" xml:space="preserve">
+  <value>Rimuovi questa lezione</value>
+</data>
+<data name="MsgBox_GenericError_Text" xml:space="preserve">
+  <value>Si è verificato un errore imprevisto.</value>
+</data>
+  
+<!-- Esempio: --> 
   <!-- <data name="HelloWorld" xml:space="preserve"> -->
   <!--   <value>Hello, World!</value> -->
   <!-- </data> -->

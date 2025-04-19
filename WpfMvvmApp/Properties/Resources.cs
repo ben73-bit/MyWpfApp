@@ -27,7 +27,7 @@ namespace WpfMvvmApp.Properties
             {
                 if (resourceMan == null)
                 {
-                    // Assicurati che "WpfMvvmApp.Properties.Resources" corrisponda
+                    // Assicurati che "WpfMvvmApp.Properties.Resources" corrisponda al nome base dei tuoi file resx
                     ResourceManager temp = new ResourceManager("WpfMvvmApp.Properties.Resources", typeof(Resources).Assembly);
                     resourceMan = temp;
                 }
@@ -55,6 +55,8 @@ namespace WpfMvvmApp.Properties
         // Metodo helper per ottenere una stringa
         private static string? GetString(string name)
         {
+            // Usiamo ResourceManager direttamente qui per coerenza con le proprietà generate
+            // e per gestire il caso in cui Culture non sia stata impostata esplicitamente.
             return ResourceManager.GetString(name, Culture);
         }
 
@@ -97,6 +99,11 @@ namespace WpfMvvmApp.Properties
         public static string? LessonActions_CancelButton_Content => GetString("LessonActions_CancelButton_Content");
         public static string? Button_AddLesson => GetString("Button_AddLesson");
         public static string? Button_UpdateLesson => GetString("Button_UpdateLesson");
+        public static string? LessonActions_DuplicateButton_Content => GetString("LessonActions_DuplicateButton_Content");
+        public static string? LessonActions_EditButton_ToolTip => GetString("LessonActions_EditButton_ToolTip");
+        // *** AGGIUNTA LA PROPRIETÀ MANCANTE ***
+        public static string? LessonActions_DuplicateButton_ToolTip => GetString("LessonActions_DuplicateButton_ToolTip");
+        public static string? LessonActions_RemoveButton_ToolTip => GetString("LessonActions_RemoveButton_ToolTip"); // Aggiunta per coerenza se manca
 
         // Messaggi Validazione
         public static string? Validation_FieldRequired => GetString("Validation_FieldRequired");
@@ -105,7 +112,7 @@ namespace WpfMvvmApp.Properties
         public static string? Validation_CannotBeNegative => GetString("Validation_CannotBeNegative");
         public static string? Validation_EndDateAfterStartDate => GetString("Validation_EndDateAfterStartDate");
         public static string? Validation_TimeSpanPositive => GetString("Validation_TimeSpanPositive");
-        public static string? Validation_InvalidTimeFormat => GetString("Validation_InvalidTimeFormat"); // Aggiunto
+        public static string? Validation_InvalidTimeFormat => GetString("Validation_InvalidTimeFormat");
 
         // Titoli MessageBox
         public static string? MsgBox_Title_ConfirmRemoval => GetString("MsgBox_Title_ConfirmRemoval");
@@ -147,6 +154,10 @@ namespace WpfMvvmApp.Properties
         public static string? MsgBox_SaveErrorUnknown_Text => GetString("MsgBox_SaveErrorUnknown_Text");
         public static string? MsgBox_SaveErrorCritical_Text => GetString("MsgBox_SaveErrorCritical_Text");
         public static string? MsgBox_SaveContractNoted_Text => GetString("MsgBox_SaveContractNoted_Text");
+        // *** CORRETTE LE DEFINIZIONI SEGUENTI ***
+        public static string? MsgBox_NoNewLessonsImported_Text => GetString("MsgBox_NoNewLessonsImported_Text");
+        public static string? MsgBox_GenericError_Text => GetString("MsgBox_GenericError_Text");
+
         // NUOVE: Stringhe ContractView
         public static string? ContractDetails_Header => GetString("ContractDetails_Header");
         public static string? ContractDetails_CompanyLabel => GetString("ContractDetails_CompanyLabel");
@@ -170,11 +181,9 @@ namespace WpfMvvmApp.Properties
         public static string? ContractList_CompanyHeader => GetString("ContractList_CompanyHeader");
         public static string? ContractList_NumberHeader => GetString("ContractList_NumberHeader");
 
-        public static string? MsgBox_NoNewLessonsImported_Text { get; internal set; }
-
         // --- Fine Proprietà Stringhe ---
 
-        // Costruttore privato
+        // Costruttore privato per prevenire istanziazione
         private Resources() { }
     }
 }
