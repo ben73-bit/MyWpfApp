@@ -59,9 +59,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-    <data name="AppName" xml:space="preserve">
+
+  <!-- Generali App -->
+  <data name="AppName" xml:space="preserve">
     <value>ControllOre</value>
   </data>
+
+  <!-- Pulsanti Contratto -->
   <data name="AddContractButton_Content" xml:space="preserve">
     <value>Aggiungi Contratto</value>
   </data>
@@ -74,7 +78,29 @@
   <data name="ContractsTitle" xml:space="preserve">
     <value>Contratti</value>
   </data>
-    <!-- ... (Stringhe esistenti) ... -->
+  <!-- NUOVO: Duplica Contratto -->
+  <data name="DuplicateContractButton_Content" xml:space="preserve">
+    <value>Duplica Contratto</value>
+  </data>
+  <data name="DuplicateContractButton_ToolTip" xml:space="preserve">
+    <value>Crea una copia del contratto selezionato (senza lezioni)</value>
+  </data>
+  <data name="DuplicateContractSuffix_Company" xml:space="preserve">
+    <value>Copia</value>
+  </data>
+  <data name="DuplicateContractSuffix_Number" xml:space="preserve">
+    <value>Copia</value>
+  </data>
+  <!-- NUOVO: Default Nuovo Contratto -->
+   <data name="NewContractDefault_CompanyName" xml:space="preserve">
+    <value>Nuova Azienda</value>
+  </data>
+   <data name="NewContractDefault_NumberPrefix" xml:space="preserve">
+    <value>NC</value>
+     <comment>NC = Nuovo Contratto</comment>
+  </data>
+
+  <!-- Lezioni -->
   <data name="LessonsTitle" xml:space="preserve">
     <value>Lezioni</value>
   </data>
@@ -150,14 +176,26 @@
    <data name="LessonActions_CancelButton_Content" xml:space="preserve">
     <value>Annulla</value>
   </data>
-  <!-- Stringhe per BoolToButtonTextConverter -->
    <data name="Button_AddLesson" xml:space="preserve">
     <value>Aggiungi Lezione</value>
   </data>
    <data name="Button_UpdateLesson" xml:space="preserve">
     <value>Aggiorna Lezione</value>
   </data>
-    <!-- Messaggi Errore Validazione -->
+   <data name="LessonActions_DuplicateButton_Content" xml:space="preserve">
+    <value>Duplica</value>
+  </data>
+  <data name="LessonActions_EditButton_ToolTip" xml:space="preserve">
+    <value>Modifica questa lezione</value>
+  </data>
+  <data name="LessonActions_DuplicateButton_ToolTip" xml:space="preserve">
+    <value>Crea una copia di questa lezione</value>
+  </data>
+  <data name="LessonActions_RemoveButton_ToolTip" xml:space="preserve">
+    <value>Rimuovi questa lezione</value>
+  </data>
+
+  <!-- Messaggi Errore Validazione -->
   <data name="Validation_FieldRequired" xml:space="preserve">
     <value>Il campo '{0}' è obbligatorio.</value>
   </data>
@@ -176,7 +214,9 @@
    <data name="Validation_TimeSpanPositive" xml:space="preserve">
     <value>Il campo '{0}' deve essere positivo.</value>
   </data>
-    <!-- ... (Stringhe esistenti e di validazione) ... -->
+  <data name="Validation_InvalidTimeFormat" xml:space="preserve">
+    <value>Formato Ora Inizio non valido (usare HH:MM).</value>
+  </data>
 
   <!-- Titoli MessageBox -->
   <data name="MsgBox_Title_ConfirmRemoval" xml:space="preserve">
@@ -292,11 +332,13 @@
    <data name="MsgBox_SaveContractNoted_Text" xml:space="preserve">
     <value>Modifiche al contratto '{0}' annotate (verranno salvate all'uscita o con Salva Tutto).</value>
   </data>
-    <!-- ... altre stringhe ... -->
-  <data name="Validation_InvalidTimeFormat" xml:space="preserve">
-    <value>Formato Ora Inizio non valido (usare HH:MM).</value>
+  <data name="MsgBox_NoNewLessonsImported_Text" xml:space="preserve">
+    <value>Nessuna nuova lezione trovata da importare. Questo può accadere se tutte le lezioni nel file esistono già nel contratto o se il file era vuoto.</value>
   </data>
-    <!-- ... (stringhe esistenti) ... -->
+  <data name="MsgBox_GenericError_Text" xml:space="preserve">
+    <value>Si è verificato un errore imprevisto.</value>
+  </data>
+
   <!-- Stringhe ContractView -->
   <data name="ContractDetails_Header" xml:space="preserve">
     <value>Dettagli Contratto</value>
@@ -352,7 +394,7 @@
   <data name="SummaryBox_RemainingHoursLabel" xml:space="preserve">
     <value>Ore Residue Contratto:</value>
   </data>
-    <!-- ... (stringhe esistenti) ... -->
+
   <!-- Intestazioni Lista Contratti -->
   <data name="ContractList_CompanyHeader" xml:space="preserve">
     <value>Azienda</value>
@@ -360,29 +402,5 @@
   <data name="ContractList_NumberHeader" xml:space="preserve">
     <value>Numero Contratto</value>
   </data>
-  <data name="MsgBox_NoNewLessonsImported_Text" xml:space="preserve">
-    <value>Nessuna nuova lezione trovata da importare. Questo può accadere se tutte le lezioni nel file esistono già nel contratto o se il file era vuoto.</value>
-  </data>
-  <data name="LessonActions_DuplicateButton_Content" xml:space="preserve">
-    <value>Duplica</value>
-  </data>
-  <data name="LessonActions_DuplicateButton_ToolTip" xml:space="preserve">
-    <value>Crea una copia di questa lezione</value>
-  </data>
-  <data name="LessonActions_EditButton_ToolTip" xml:space="preserve">
-    <value>Modifica questa lezione</value>
-  </data>
-  <!-- Aggiungi queste due voci mancanti in Resources.it-IT.resx -->
-<data name="LessonActions_RemoveButton_ToolTip" xml:space="preserve">
-  <value>Rimuovi questa lezione</value>
-</data>
-<data name="MsgBox_GenericError_Text" xml:space="preserve">
-  <value>Si è verificato un errore imprevisto.</value>
-</data>
-  
-<!-- Esempio: --> 
-  <!-- <data name="HelloWorld" xml:space="preserve"> -->
-  <!--   <value>Hello, World!</value> -->
-  <!-- </data> -->
 
 </root>

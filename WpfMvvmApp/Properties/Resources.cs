@@ -52,11 +52,9 @@ namespace WpfMvvmApp.Properties
             }
         }
 
-        // Metodo helper per ottenere una stringa
+        // Metodo helper per ottenere una stringa (alternativa per brevità)
         private static string? GetString(string name)
         {
-            // Usiamo ResourceManager direttamente qui per coerenza con le proprietà generate
-            // e per gestire il caso in cui Culture non sia stata impostata esplicitamente.
             return ResourceManager.GetString(name, Culture);
         }
 
@@ -70,6 +68,15 @@ namespace WpfMvvmApp.Properties
         public static string? RemoveContractButton_Content => GetString("RemoveContractButton_Content");
         public static string? SaveContractButton_Content => GetString("SaveContractButton_Content");
         public static string? ContractsTitle => GetString("ContractsTitle");
+        // NUOVO: Duplica Contratto
+        public static string? DuplicateContractButton_Content => GetString("DuplicateContractButton_Content");
+        public static string? DuplicateContractButton_ToolTip => GetString("DuplicateContractButton_ToolTip");
+        public static string? DuplicateContractSuffix_Company => GetString("DuplicateContractSuffix_Company");
+        public static string? DuplicateContractSuffix_Number => GetString("DuplicateContractSuffix_Number");
+        // NUOVO: Default Nuovo Contratto
+        public static string? NewContractDefault_CompanyName => GetString("NewContractDefault_CompanyName");
+        public static string? NewContractDefault_NumberPrefix => GetString("NewContractDefault_NumberPrefix");
+
 
         // Pulsanti/Titoli Lezione
         public static string? LessonsTitle => GetString("LessonsTitle");
@@ -101,9 +108,8 @@ namespace WpfMvvmApp.Properties
         public static string? Button_UpdateLesson => GetString("Button_UpdateLesson");
         public static string? LessonActions_DuplicateButton_Content => GetString("LessonActions_DuplicateButton_Content");
         public static string? LessonActions_EditButton_ToolTip => GetString("LessonActions_EditButton_ToolTip");
-        // *** AGGIUNTA LA PROPRIETÀ MANCANTE ***
         public static string? LessonActions_DuplicateButton_ToolTip => GetString("LessonActions_DuplicateButton_ToolTip");
-        public static string? LessonActions_RemoveButton_ToolTip => GetString("LessonActions_RemoveButton_ToolTip"); // Aggiunta per coerenza se manca
+        public static string? LessonActions_RemoveButton_ToolTip => GetString("LessonActions_RemoveButton_ToolTip");
 
         // Messaggi Validazione
         public static string? Validation_FieldRequired => GetString("Validation_FieldRequired");
@@ -154,11 +160,10 @@ namespace WpfMvvmApp.Properties
         public static string? MsgBox_SaveErrorUnknown_Text => GetString("MsgBox_SaveErrorUnknown_Text");
         public static string? MsgBox_SaveErrorCritical_Text => GetString("MsgBox_SaveErrorCritical_Text");
         public static string? MsgBox_SaveContractNoted_Text => GetString("MsgBox_SaveContractNoted_Text");
-        // *** CORRETTE LE DEFINIZIONI SEGUENTI ***
         public static string? MsgBox_NoNewLessonsImported_Text => GetString("MsgBox_NoNewLessonsImported_Text");
         public static string? MsgBox_GenericError_Text => GetString("MsgBox_GenericError_Text");
 
-        // NUOVE: Stringhe ContractView
+        // Stringhe ContractView Dettagli/Riepilogo
         public static string? ContractDetails_Header => GetString("ContractDetails_Header");
         public static string? ContractDetails_CompanyLabel => GetString("ContractDetails_CompanyLabel");
         public static string? ContractDetails_NumberLabel => GetString("ContractDetails_NumberLabel");
@@ -177,7 +182,8 @@ namespace WpfMvvmApp.Properties
         public static string? SummaryBox_ReadyToBillLabel => GetString("SummaryBox_ReadyToBillLabel");
         public static string? SummaryBox_AlreadyBilledLabel => GetString("SummaryBox_AlreadyBilledLabel");
         public static string? SummaryBox_RemainingHoursLabel => GetString("SummaryBox_RemainingHoursLabel");
-        // NUOVE: Intestazioni Lista Contratti
+
+        // Intestazioni Lista Contratti
         public static string? ContractList_CompanyHeader => GetString("ContractList_CompanyHeader");
         public static string? ContractList_NumberHeader => GetString("ContractList_NumberHeader");
 

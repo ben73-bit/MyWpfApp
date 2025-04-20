@@ -3,14 +3,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics; // Necessario per Debug.WriteLine
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
 using WpfMvvmApp.Models;
 using WpfMvvmApp.Services;
-using WpfMvvmApp.Commands; // Assicurati using corretto
+using WpfMvvmApp.Commands;
+using WpfMvvmApp.Properties; // Aggiungi using per Resources
 
 namespace WpfMvvmApp.ViewModels
 {
@@ -34,7 +35,8 @@ namespace WpfMvvmApp.ViewModels
                 {
                     (SaveContractCommand as RelayCommand)?.RaiseCanExecuteChanged();
                     (RemoveContractCommand as RelayCommand)?.RaiseCanExecuteChanged();
-                    _selectedContract?.UpdateCommandStates();
+                    (DuplicateContractCommand as RelayCommand)?.RaiseCanExecuteChanged(); // Aggiorna CanExecute del nuovo comando
+                    _selectedContract?.UpdateCommandStates(); // Aggiorna stati comandi interni al ContractViewModel
                 }
             }
         }
@@ -43,8 +45,8 @@ namespace WpfMvvmApp.ViewModels
         public ICommand AddNewContractCommand { get; }
         public ICommand SaveContractCommand { get; }
         public ICommand RemoveContractCommand { get; }
-        // NUOVO: Comando per salvataggio esplicito (debug)
         public ICommand SaveAllDataCommand { get; }
+        public ICommand DuplicateContractCommand { get; } // NUOVO COMANDO
 
         // Costruttore
         public MainViewModel()
@@ -54,8 +56,8 @@ namespace WpfMvvmApp.ViewModels
             AddNewContractCommand = new RelayCommand(ExecuteAddNewContract);
             SaveContractCommand = new RelayCommand(ExecuteSaveContract, CanExecuteSaveContract);
             RemoveContractCommand = new RelayCommand(ExecuteRemoveContract, CanExecuteRemoveContract);
-            // NUOVO: Inizializza comando SaveAll
-            SaveAllDataCommand = new RelayCommand(ExecuteSaveAllData); // Sempre abilitato
+            SaveAllDataCommand = new RelayCommand(ExecuteSaveAllData);
+            DuplicateContractCommand = new RelayCommand(ExecuteDuplicateContract, CanExecuteDuplicateContract); // NUOVO: Inizializza comando
 
             LoadContractsFromUserData();
             Application.Current.Exit += OnApplicationExit;
@@ -65,16 +67,15 @@ namespace WpfMvvmApp.ViewModels
         private void LoadContractsFromUserData()
         {
             Contracts.Clear();
-            // Aggiunto controllo null per _currentUser anche se LoadUserData dovrebbe sempre restituire un oggetto
             if (_currentUser?.Contracts != null)
             {
-                foreach (var contractModel in _currentUser.Contracts)
+                foreach (var contractModel in _currentUser.Contracts.OrderBy(c => c.Company).ThenBy(c => c.ContractNumber)) // Aggiunto piccolo ordinamento
                 {
-                    // Assicurati che ContractViewModel accetti Contract (non Contract?)
                     var contractVM = new ContractViewModel(contractModel, _dialogService, _calService);
                     Contracts.Add(contractVM);
                 }
             }
+            // Seleziona il primo o null se la lista è vuota
             SelectedContract = Contracts.FirstOrDefault();
         }
 
@@ -83,24 +84,29 @@ namespace WpfMvvmApp.ViewModels
         {
              var newContractModel = new Contract
              {
-                 Company = "New Company",
-                 ContractNumber = $"CN-{DateTime.Now.Ticks}",
-                 TotalHours = 10,
-                 Lessons = new List<Lesson>()
+                 Company = Resources.NewContractDefault_CompanyName ?? "New Company", // Usa risorsa
+                 ContractNumber = $"{Resources.NewContractDefault_NumberPrefix ?? "CN"}-{DateTime.Now.Ticks}", // Usa risorsa
+                 TotalHours = 10, // Valore di default
+                 HourlyRate = 0, // Valore di default
+                 StartDate = DateTime.Today, // Default ragionevole
+                 // EndDate = null, // Lascia null di default
+                 Lessons = new List<Lesson>() // Lista vuota
              };
              _currentUser.Contracts ??= new List<Contract>();
              _currentUser.Contracts.Add(newContractModel);
              var newContractVM = new ContractViewModel(newContractModel, _dialogService, _calService);
              Contracts.Add(newContractVM);
-             SelectedContract = newContractVM;
-             // ExecuteSaveAllData(null); // Non salvare automaticamente qui per ora
+             SelectedContract = newContractVM; // Seleziona il nuovo contratto aggiunto
         }
 
         private void ExecuteSaveContract(object? parameter)
         {
              if (SelectedContract?.Contract != null && SelectedContract.IsContractValid)
              {
-                 MessageBox.Show($"Contract '{SelectedContract.Company}' changes noted (will be saved on exit or via Save All).", "Save Contract", MessageBoxButton.OK, MessageBoxImage.Information);
+                 // Messaggio aggiornato per usare le risorse
+                 MessageBox.Show(string.Format(Resources.MsgBox_SaveContractNoted_Text ?? "Contract '{0}' changes noted (will be saved on exit or via Save All).", SelectedContract.Company),
+                                 Resources.MsgBox_Title_SaveContract ?? "Save Contract",
+                                 MessageBoxButton.OK, MessageBoxImage.Information);
              }
         }
         private bool CanExecuteSaveContract(object? parameter)
@@ -113,8 +119,10 @@ namespace WpfMvvmApp.ViewModels
             var contractToRemoveVM = parameter as ContractViewModel ?? SelectedContract;
             if (contractToRemoveVM?.Contract == null) return;
 
-            var result = MessageBox.Show($"Are you sure you want to delete the contract '{contractToRemoveVM.Company} - {contractToRemoveVM.ContractNumber}'?\nThis will also delete all associated lessons.",
-                                         "Confirm Contract Deletion", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            // Messaggio aggiornato per usare le risorse
+            var result = MessageBox.Show(string.Format(Resources.MsgBox_ConfirmContractDeletion_Text ?? "Are you sure you want to delete the contract '{0} - {1}'?\nThis will also delete all associated lessons.", contractToRemoveVM.Company, contractToRemoveVM.ContractNumber),
+                                         Resources.MsgBox_Title_ConfirmContractDeletion ?? "Confirm Contract Deletion",
+                                         MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
             if (result == MessageBoxResult.Yes)
             {
@@ -124,8 +132,7 @@ namespace WpfMvvmApp.ViewModels
                 if (removedFromModel || removedFromVMCollection)
                 {
                     Debug.WriteLine($"Contract '{contractToRemoveVM.ContractNumber}' removed.");
-                    SelectedContract = Contracts.FirstOrDefault();
-                    // ExecuteSaveAllData(null); // Non salvare automaticamente qui per ora
+                    SelectedContract = Contracts.FirstOrDefault(); // Seleziona il primo rimanente
                 }
                 else { Debug.WriteLine($"Failed to remove contract '{contractToRemoveVM.ContractNumber}'."); }
             }
@@ -135,13 +142,57 @@ namespace WpfMvvmApp.ViewModels
             return SelectedContract != null;
         }
 
-        // *** Metodo per salvare tutti i dati (MODIFICATO per Logging Dettagliato) ***
+        // *** NUOVO: Metodo Esecuzione Duplica Contratto ***
+        private void ExecuteDuplicateContract(object? parameter)
+        {
+            if (SelectedContract?.Contract == null) return;
+
+            var originalContract = SelectedContract.Contract;
+
+            // Crea il nuovo modello copiando i dati
+            var duplicatedContractModel = new Contract
+            {
+                // Aggiunge " - Copy" al nome e numero per distinguerlo
+                Company = $"{originalContract.Company} ({Resources.DuplicateContractSuffix_Company ?? "Copy"})",
+                ContractNumber = $"{originalContract.ContractNumber} ({Resources.DuplicateContractSuffix_Number ?? "Copy"})",
+                HourlyRate = originalContract.HourlyRate,
+                TotalHours = originalContract.TotalHours,
+                StartDate = originalContract.StartDate,
+                EndDate = originalContract.EndDate,
+                // IMPORTANTE: NON copiare le lezioni
+                Lessons = new List<Lesson>()
+            };
+
+            // Aggiungi il nuovo modello alla lista del User
+             _currentUser.Contracts ??= new List<Contract>();
+             _currentUser.Contracts.Add(duplicatedContractModel);
+
+             // Crea il nuovo ViewModel
+             var newContractVM = new ContractViewModel(duplicatedContractModel, _dialogService, _calService);
+
+             // Aggiungi il nuovo ViewModel alla ObservableCollection
+             Contracts.Add(newContractVM);
+
+             // Seleziona il contratto appena duplicato
+             SelectedContract = newContractVM;
+        }
+
+        // *** NUOVO: Metodo CanExecute Duplica Contratto ***
+        private bool CanExecuteDuplicateContract(object? parameter)
+        {
+            // Può duplicare solo se c'è un contratto selezionato
+            return SelectedContract != null;
+        }
+
+
+        // Metodo per salvare tutti i dati
         private void ExecuteSaveAllData(object? parameter = null)
         {
             if (_currentUser == null)
             {
                 Debug.WriteLine("ExecuteSaveAllData: Cannot save data, _currentUser is null.");
-                MessageBox.Show("Cannot save data: User data is missing.", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(Resources.MsgBox_SaveErrorUnknown_Text ?? "Cannot save data: User data is missing.",
+                                Resources.MsgBox_Title_SaveError ?? "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
 
@@ -149,33 +200,24 @@ namespace WpfMvvmApp.ViewModels
             bool success = false;
             try
             {
-                 // Chiama il servizio che ora ha log dettagliato e catch specifici
                  success = _persistenceService.SaveUserData(_currentUser);
-
                  if(success)
                  {
                      Debug.WriteLine("ExecuteSaveAllData: Save reported successful by service.");
-                     // Mostra messaggio di successo solo se chiamato esplicitamente (non all'uscita)
-                     if (parameter != null || !(parameter is ExitEventArgs)) // Controlla se non è l'evento Exit
-                     {
-                          // Potremmo mostrare un messaggio, ma forse è meglio di no per non essere troppo invasivi
-                          // MessageBox.Show("All data saved successfully.", "Save Complete", MessageBoxButton.OK, MessageBoxImage.Information);
-                     }
                  }
                  else
                  {
-                     // Il servizio ha restituito false senza eccezioni (improbabile ma gestito)
                      Debug.WriteLine("ExecuteSaveAllData: Save reported FAILED by service (returned false).");
-                     MessageBox.Show("Could not save user data. The save operation failed without a specific error.",
-                                     "Save Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                      MessageBox.Show(Resources.MsgBox_SaveError_Text ?? "Could not save user data. The save operation failed.",
+                                     Resources.MsgBox_Title_SaveError ?? "Save Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                  }
             }
-            catch (Exception ex) // Cattura eccezioni impreviste che potrebbero sfuggire al servizio
+            catch (Exception ex)
             {
                  Debug.WriteLine($"ExecuteSaveAllData: UNEXPECTED Exception during save call: {ex}");
-                 MessageBox.Show($"An unexpected error occurred while trying to save data:\n{ex.Message}",
-                                 "Critical Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                 success = false; // Assicura che success sia false
+                 MessageBox.Show(string.Format(Resources.MsgBox_SaveErrorCritical_Text ?? "An unexpected error occurred while trying to save data:\n{0}", ex.Message),
+                                 Resources.MsgBox_Title_SaveError ?? "Critical Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                 success = false;
             }
         }
 
@@ -183,7 +225,7 @@ namespace WpfMvvmApp.ViewModels
         private void OnApplicationExit(object sender, ExitEventArgs e)
         {
             Debug.WriteLine("OnApplicationExit: Saving data...");
-            ExecuteSaveAllData(e); // Passa ExitEventArgs come parametro per distinguerlo
+            ExecuteSaveAllData(e);
             try { Application.Current.Exit -= OnApplicationExit; } catch { }
         }
 
