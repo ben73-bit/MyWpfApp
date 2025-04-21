@@ -23,7 +23,8 @@
 
     <!-- Grid Principale -->
     <Grid Margin="10">
-        <Grid.ColumnDefinitions>
+        <!-- ... (Definizioni Grid, Riga 0, Colonna 0, Splitter Colonna 1 invariate) ... -->
+         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" MinWidth="300"/> <!-- Colonna Sinistra: Lista Contratti -->
             <ColumnDefinition Width="Auto"/>            <!-- Colonna Centrale: Splitter -->
             <ColumnDefinition Width="1.5*" MinWidth="400"/> <!-- Colonna Destra: Dettagli + Lezioni -->
@@ -81,13 +82,14 @@
                 <RowDefinition Height="*"/>    <!-- Riga per LessonView -->
             </Grid.RowDefinitions>
 
-            <!-- ScrollViewer Dettagli Contratto e Riepilogo - RIMOSSO MaxHeight -->
+            <!-- ScrollViewer Dettagli Contratto e Riepilogo -->
             <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel>
                     <!-- GroupBox Dettagli -->
                     <GroupBox Header="{Binding Source={x:Static properties:Resources.ContractDetails_Header}, Mode=OneWay}" FontWeight="Bold">
                          <Grid>
-                             <Grid.ColumnDefinitions> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="*"/> </Grid.ColumnDefinitions>
+                             <!-- ... (Contenuto GroupBox invariato) ... -->
+                              <Grid.ColumnDefinitions> <ColumnDefinition Width="Auto"/> <ColumnDefinition Width="*"/> </Grid.ColumnDefinitions>
                              <Grid.RowDefinitions> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> <RowDefinition Height="Auto"/> </Grid.RowDefinitions>
                              <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.ContractDetails_CompanyLabel}, Mode=OneWay}" Style="{StaticResource LabelTextBlock}"/>
                              <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding Company, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"/>
@@ -118,34 +120,50 @@
                          </Grid>
                     </GroupBox>
 
-                    <!-- Border Riepilogo -->
+                    <!-- Border Riepilogo - MODIFICATO -->
                     <Border Background="#FFF0F8FF" Padding="10" Margin="5,10" CornerRadius="4" MaxWidth="400">
                          <StackPanel>
                              <TextBlock Text="{Binding Source={x:Static properties:Resources.SummaryBox_Title}, Mode=OneWay}" FontWeight="Bold" Margin="0,0,0,8" HorizontalAlignment="Center" FontSize="14"/>
+                             <!-- Grid Ore -->
                              <TextBlock Text="{Binding Source={x:Static properties:Resources.SummaryBox_HoursTitle}, Mode=OneWay}" FontWeight="SemiBold" Margin="0,0,0,3"/>
                              <Grid HorizontalAlignment="Left">
                                  <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto" MinWidth="40" /></Grid.ColumnDefinitions>
-                                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                 <!-- MODIFICATO: Aggiunta RowDefinition per Ore Residue -->
+                                 <Grid.RowDefinitions>
+                                     <RowDefinition Height="Auto"/>
+                                     <RowDefinition Height="Auto"/>
+                                     <RowDefinition Height="Auto"/>
+                                     <RowDefinition Height="Auto"/> <!-- NUOVA RIGA -->
+                                 </Grid.RowDefinitions>
                                  <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_InsertedLabel}, Mode=OneWay}" Margin="0,1,10,1" VerticalAlignment="Center"/>
-                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalInsertedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" />
+                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalInsertedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" HorizontalAlignment="Right"/> <!-- Aggiunto HorizontalAlignment -->
                                  <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_ConfirmedLabel}, Mode=OneWay}" Margin="0,1,10,1" VerticalAlignment="Center"/>
-                                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalConfirmedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" />
+                                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalConfirmedHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" HorizontalAlignment="Right"/> <!-- Aggiunto HorizontalAlignment -->
                                  <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_BilledLabel}, Mode=OneWay}" Margin="0,1,10,1" VerticalAlignment="Center"/>
-                                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding BilledHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" />
+                                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding BilledHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" HorizontalAlignment="Right"/> <!-- Aggiunto HorizontalAlignment -->
+                                 <!-- SPOSTATO QUI: Ore Residue -->
+                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_RemainingHoursLabel}, Mode=OneWay}" Margin="0,5,10,1" VerticalAlignment="Center" FontWeight="SemiBold"/>
+                                 <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding RemainingHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" HorizontalAlignment="Right"/> <!-- Aggiunto HorizontalAlignment -->
                              </Grid>
                              <Separator Margin="0,8"/>
+                             <!-- Grid Importi -->
                              <TextBlock Text="{Binding Source={x:Static properties:Resources.SummaryBox_AmountsTitle}, Mode=OneWay}" FontWeight="SemiBold" Margin="0,0,0,3"/>
                              <Grid HorizontalAlignment="Left">
                                  <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="Auto" MinWidth="60" /></Grid.ColumnDefinitions>
-                                 <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+                                 <!-- MODIFICATO: Rimossa RowDefinition per Ore Residue -->
+                                 <Grid.RowDefinitions>
+                                     <RowDefinition Height="Auto"/>
+                                     <RowDefinition Height="Auto"/>
+                                     <RowDefinition Height="Auto"/>
+                                     <!-- RowDefinition per RemainingHours rimossa -->
+                                 </Grid.RowDefinitions>
                                  <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_PotentialLabel}, Mode=OneWay}" Margin="0,1,10,1" VerticalAlignment="Center" ToolTip="Total amount for all inserted lessons"/>
-                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalPotentialAmount, StringFormat=C, ConverterCulture=it-IT}" VerticalAlignment="Center" />
+                                 <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding TotalPotentialAmount, StringFormat=C, ConverterCulture=it-IT}" VerticalAlignment="Center" HorizontalAlignment="Right"/> <!-- Aggiunto HorizontalAlignment -->
                                  <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_ReadyToBillLabel}, Mode=OneWay}" Margin="0,1,10,1" VerticalAlignment="Center" ToolTip="Amount for Confirmed but not yet Billed lessons"/>
-                                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalConfirmedUnbilledAmount, StringFormat=C, ConverterCulture=it-IT}" VerticalAlignment="Center" FontWeight="Bold"/>
+                                 <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding TotalConfirmedUnbilledAmount, StringFormat=C, ConverterCulture=it-IT}" VerticalAlignment="Center" FontWeight="Bold" HorizontalAlignment="Right"/> <!-- Aggiunto HorizontalAlignment -->
                                  <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_AlreadyBilledLabel}, Mode=OneWay}" Margin="0,1,10,1" VerticalAlignment="Center"/>
-                                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalBilledAmount, StringFormat=C, ConverterCulture=it-IT}" VerticalAlignment="Center" />
-                                 <TextBlock Grid.Row="3" Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.SummaryBox_RemainingHoursLabel}, Mode=OneWay}" Margin="0,5,10,1" VerticalAlignment="Center" FontWeight="SemiBold"/>
-                                 <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding RemainingHours, StringFormat='{}{0:F2} h'}" VerticalAlignment="Center" />
+                                 <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding TotalBilledAmount, StringFormat=C, ConverterCulture=it-IT}" VerticalAlignment="Center" HorizontalAlignment="Right"/> <!-- Aggiunto HorizontalAlignment -->
+                                 <!-- TextBlock per RemainingHours RIMOSSI da qui -->
                              </Grid>
                          </StackPanel>
                     </Border>
