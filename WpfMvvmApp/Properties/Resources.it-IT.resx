@@ -200,7 +200,7 @@
     <value>Il campo '{0}' è obbligatorio.</value>
   </data>
   <data name="Validation_PositiveNumber" xml:space="preserve">
-    <value>Il campo '{0}' deve essere positivo.</value>
+    <value>Il campo '{0}' deve essere un numero positivo.</value>
   </data>
   <data name="Validation_MinimumValue" xml:space="preserve">
     <value>Il campo '{0}' deve essere almeno {1}.</value>
@@ -212,7 +212,7 @@
     <value>La data di fine deve essere successiva alla data di inizio.</value>
   </data>
    <data name="Validation_TimeSpanPositive" xml:space="preserve">
-    <value>Il campo '{0}' deve essere positivo.</value>
+    <value>Il campo '{0}' deve essere una durata positiva (es. HH:MM maggiore di 00:00).</value>
   </data>
   <data name="Validation_InvalidTimeFormat" xml:space="preserve">
     <value>Formato Ora Inizio non valido (usare HH:MM).</value>

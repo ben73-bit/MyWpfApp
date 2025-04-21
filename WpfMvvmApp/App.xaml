@@ -4,12 +4,12 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:local="clr-namespace:WpfMvvmApp"
              xmlns:converters="clr-namespace:WpfMvvmApp.Converters"
-             StartupUri="MainWindow.xaml"> <!-- O Views/MainWindow.xaml -->
+             StartupUri="MainWindow.xaml">
 
     <Application.Resources>
          <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- ... -->
+                <!-- Se usi dizionari esterni, lasciali qui -->
             </ResourceDictionary.MergedDictionaries>
 
             <!-- Convertitori -->
@@ -36,16 +36,77 @@
             <SolidColorBrush x:Key="BorderBrush" Color="#CCCCCC"/>
             <SolidColorBrush x:Key="ErrorBrush" Color="Red"/>
 
-            <!-- Stili Base e Impliciti -->
-            <Style TargetType="{x:Type Button}" x:Key="BaseButtonStyle"> <!-- ... Definizione completa ... --> </Style>
-            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource BaseButtonStyle}"/>
-            <Style TargetType="{x:Type TextBox}" x:Key="ValidatedInputTextBox"> <!-- ... Definizione completa ... --> </Style>
-            <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource ValidatedInputTextBox}"/>
-            <Style TargetType="{x:Type DatePicker}" x:Key="ValidatedDatePicker"> <!-- ... Definizione completa ... --> </Style>
-            <Style TargetType="{x:Type DatePicker}" BasedOn="{StaticResource ValidatedDatePicker}"/>
-            <Style TargetType="GroupBox"> <Setter Property="Padding" Value="10"/> <Setter Property="Margin" Value="5,0,5,10"/> <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/> <Setter Property="BorderThickness" Value="1"/> </Style>
+            <!-- Stili Base -->
+            <Style TargetType="{x:Type Button}" x:Key="BaseButtonStyle">
+                <Setter Property="Padding" Value="8,4"/>
+                <Setter Property="Margin" Value="2"/>
+                <Setter Property="MinWidth" Value="75"/>
+                <Setter Property="BorderThickness" Value="1"/>
+                <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                <Setter Property="Background" Value="{StaticResource SecondaryBrush}"/>
+                <Setter Property="Foreground" Value="{StaticResource DefaultTextBrush}"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="HorizontalContentAlignment" Value="Center"/>
+                <Style.Triggers>
+                     <Trigger Property="IsMouseOver" Value="True">
+                         <Setter Property="Background" Value="{StaticResource SecondaryMouseOverBrush}"/>
+                     </Trigger>
+                     <Trigger Property="IsEnabled" Value="False">
+                         <Setter Property="Background" Value="{StaticResource DisabledBackgroundBrush}"/>
+                         <Setter Property="Foreground" Value="{StaticResource DisabledForegroundBrush}"/>
+                         <Setter Property="BorderBrush" Value="#CCCCCC"/>
+                         <Setter Property="Cursor" Value="No"/>
+                     </Trigger>
+                 </Style.Triggers>
+            </Style>
 
-            <!-- *** AGGIUNGI/VERIFICA QUESTI STILI CON CHIAVE *** -->
+             <!-- Stile TextBox con Validazione - TRIGGER REINTRODOTTO (SOLO TOOLTIP) -->
+             <Style TargetType="{x:Type TextBox}" x:Key="ValidatedInputTextBox">
+                 <Setter Property="Padding" Value="5,3"/>
+                 <Setter Property="Margin" Value="5"/>
+                 <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                 <Setter Property="BorderThickness" Value="1"/>
+                 <Setter Property="VerticalContentAlignment" Value="Center"/>
+                 <!-- Trigger per mostrare SOLO il tooltip dell'errore -->
+                 <Style.Triggers>
+                     <Trigger Property="Validation.HasError" Value="true">
+                         <Setter Property="ToolTip"
+                                 Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                         <!-- NON impostiamo BorderBrush/Thickness qui per evitare problemi di layout -->
+                     </Trigger>
+                 </Style.Triggers>
+             </Style>
+
+             <!-- Stile DatePicker con Validazione - TRIGGER REINTRODOTTO (SOLO TOOLTIP) -->
+             <Style TargetType="{x:Type DatePicker}" x:Key="ValidatedDatePicker">
+                  <Setter Property="Padding" Value="5,3"/>
+                  <Setter Property="Margin" Value="5"/>
+                  <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                  <Setter Property="BorderThickness" Value="1"/>
+                  <Setter Property="VerticalContentAlignment" Value="Center"/>
+                  <!-- Trigger per mostrare SOLO il tooltip dell'errore -->
+                  <Style.Triggers>
+                      <Trigger Property="Validation.HasError" Value="true">
+                          <Setter Property="ToolTip"
+                                  Value="{Binding RelativeSource={x:Static RelativeSource.Self}, Path=(Validation.Errors)[0].ErrorContent}"/>
+                          <!-- NON impostiamo BorderBrush/Thickness qui -->
+                      </Trigger>
+                  </Style.Triggers>
+             </Style>
+
+            <!-- Stili Impliciti -->
+            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource BaseButtonStyle}"/>
+            <Style TargetType="{x:Type TextBox}" BasedOn="{StaticResource ValidatedInputTextBox}"/>
+            <Style TargetType="{x:Type DatePicker}" BasedOn="{StaticResource ValidatedDatePicker}"/>
+            <Style TargetType="GroupBox">
+                 <Setter Property="Padding" Value="10"/>
+                 <Setter Property="Margin" Value="5,0,5,10"/>
+                 <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}"/>
+                 <Setter Property="BorderThickness" Value="1"/>
+            </Style>
+
+            <!-- Stili Espliciti (con chiave) -->
             <Style TargetType="TextBlock" x:Key="LabelTextBlock">
                  <Setter Property="VerticalAlignment" Value="Center"/>
                  <Setter Property="Margin" Value="0,0,10,0"/>
@@ -53,17 +114,58 @@
                  <Setter Property="Foreground" Value="{StaticResource DefaultTextBrush}"/>
             </Style>
             <Style TargetType="Button" x:Key="PrimaryButtonStyle" BasedOn="{StaticResource BaseButtonStyle}">
-                 <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/> <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/> <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/> <Style.Triggers> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="{StaticResource PrimaryMouseOverBrush}"/> </Trigger> </Style.Triggers>
+                 <Setter Property="Background" Value="{StaticResource PrimaryBrush}"/>
+                 <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+                 <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}"/>
+                 <Style.Triggers>
+                     <Trigger Property="IsMouseOver" Value="True">
+                         <Setter Property="Background" Value="{StaticResource PrimaryMouseOverBrush}"/>
+                     </Trigger>
+                 </Style.Triggers>
             </Style>
              <Style TargetType="Button" x:Key="RemoveButtonStyle" BasedOn="{StaticResource BaseButtonStyle}">
-                 <Setter Property="Background" Value="{StaticResource DangerBrush}"/> <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/> <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/> <Style.Triggers> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="{StaticResource DangerMouseOverBrush}"/> </Trigger> </Style.Triggers>
+                 <Setter Property="Background" Value="{StaticResource DangerBrush}"/>
+                 <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+                 <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}"/>
+                 <Style.Triggers>
+                     <Trigger Property="IsMouseOver" Value="True">
+                         <Setter Property="Background" Value="{StaticResource DangerMouseOverBrush}"/>
+                     </Trigger>
+                 </Style.Triggers>
             </Style>
              <Style TargetType="Button" x:Key="AccentButtonStyle" BasedOn="{StaticResource BaseButtonStyle}">
-                 <Setter Property="Background" Value="{StaticResource AccentBrush}"/> <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/> <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/> <Style.Triggers> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="{StaticResource AccentMouseOverBrush}"/> </Trigger> </Style.Triggers>
+                 <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+                 <Setter Property="Foreground" Value="{StaticResource LightTextBrush}"/>
+                 <Setter Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                 <Style.Triggers>
+                     <Trigger Property="IsMouseOver" Value="True">
+                         <Setter Property="Background" Value="{StaticResource AccentMouseOverBrush}"/>
+                     </Trigger>
+                 </Style.Triggers>
             </Style>
-            <Style TargetType="Button" x:Key="ImportExportButtonStyle" BasedOn="{StaticResource BaseButtonStyle}"> <Setter Property="MinWidth" Value="80"/> <Setter Property="Margin" Value="5,0"/> <Setter Property="Background" Value="LightSteelBlue"/> <Setter Property="Foreground" Value="{StaticResource DefaultTextBrush}"/> <Setter Property="BorderBrush" Value="Gray"/> <Style.Triggers> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="CornflowerBlue"/> </Trigger> </Style.Triggers> </Style>
-            <Style TargetType="Button" x:Key="BillButtonStyle" BasedOn="{StaticResource BaseButtonStyle}"> <Setter Property="MinWidth" Value="100"/> <Setter Property="Margin" Value="10,0,5,0"/> <Setter Property="Background" Value="MediumSeaGreen"/> <Setter Property="Foreground" Value="White"/> <Style.Triggers> <Trigger Property="IsMouseOver" Value="True"> <Setter Property="Background" Value="SeaGreen"/> </Trigger> </Style.Triggers> </Style>
-            <!-- *************************************************** -->
+            <Style TargetType="Button" x:Key="ImportExportButtonStyle" BasedOn="{StaticResource BaseButtonStyle}">
+                 <Setter Property="MinWidth" Value="80"/>
+                 <Setter Property="Margin" Value="5,0"/>
+                 <Setter Property="Background" Value="LightSteelBlue"/>
+                 <Setter Property="Foreground" Value="{StaticResource DefaultTextBrush}"/>
+                 <Setter Property="BorderBrush" Value="Gray"/>
+                 <Style.Triggers>
+                     <Trigger Property="IsMouseOver" Value="True">
+                         <Setter Property="Background" Value="CornflowerBlue"/>
+                     </Trigger>
+                 </Style.Triggers>
+            </Style>
+            <Style TargetType="Button" x:Key="BillButtonStyle" BasedOn="{StaticResource BaseButtonStyle}">
+                 <Setter Property="MinWidth" Value="100"/>
+                 <Setter Property="Margin" Value="10,0,5,0"/>
+                 <Setter Property="Background" Value="MediumSeaGreen"/>
+                 <Setter Property="Foreground" Value="White"/>
+                 <Style.Triggers>
+                     <Trigger Property="IsMouseOver" Value="True">
+                         <Setter Property="Background" Value="SeaGreen"/>
+                     </Trigger>
+                 </Style.Triggers>
+            </Style>
 
          </ResourceDictionary>
     </Application.Resources>

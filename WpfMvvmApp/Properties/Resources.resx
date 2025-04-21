@@ -199,26 +199,30 @@
     <value>Remove this lesson</value>
   </data>
 
-  <!-- Validation Error Messages -->
+    <!-- Validation Error Messages -->
   <data name="Validation_FieldRequired" xml:space="preserve">
     <value>{0} is required.</value>
-    <comment>{0} is the field name</comment>
+    <comment>{0} is the property display name</comment>
   </data>
   <data name="Validation_PositiveNumber" xml:space="preserve">
-    <value>{0} must be positive.</value>
+    <value>{0} must be a positive number.</value>
+    <comment>{0} is the property display name</comment>
   </data>
   <data name="Validation_MinimumValue" xml:space="preserve">
     <value>{0} must be at least {1}.</value>
-    <comment>{0} is field name, {1} is minimum value</comment>
+    <comment>{0} is property display name, {1} is the minimum value</comment>
   </data>
   <data name="Validation_CannotBeNegative" xml:space="preserve">
     <value>{0} cannot be negative.</value>
+    <comment>{0} is the property display name</comment>
   </data>
   <data name="Validation_EndDateAfterStartDate" xml:space="preserve">
-    <value>End date must be after start date.</value>
+    <value>End date must be after the start date.</value>
+    <comment>Specific message for DateRangeAttribute</comment>
   </data>
    <data name="Validation_TimeSpanPositive" xml:space="preserve">
-    <value>{0} must be positive.</value>
+    <value>{0} must be a positive duration (e.g., HH:MM greater than 00:00).</value>
+    <comment>{0} is the property display name (Duration)</comment>
   </data>
   <data name="Validation_InvalidTimeFormat" xml:space="preserve">
     <value>Invalid Start Time format (use HH:MM).</value>

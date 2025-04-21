@@ -172,26 +172,91 @@ namespace WpfMvvmApp.ViewModels
             return true;
         }
 
-        // --- IDataErrorInfo ---
-        string IDataErrorInfo.Error => GetFirstError();
+                // --- IDataErrorInfo ---
+
+        // La proprietà Error restituisce un errore generale per l'oggetto.
+        // Potremmo usarla per errori che non appartengono a una singola proprietà,
+        // ma per ora la lasciamo semplice e ci concentriamo sull'indicizzatore.
+        string IDataErrorInfo.Error => string.Empty; // O potremmo chiamare GetFirstError() qui se volessimo un errore generale
+
+        // L'indicizzatore restituisce l'errore per una proprietà specifica.
         string IDataErrorInfo.this[string columnName]
         {
             get
             {
+                string error = string.Empty;
+
+                // Validazione proprietà specifiche del ViewModel (se ce ne sono altre oltre a questa)
                 if (columnName == nameof(NewLessonStartTimeString))
                 {
-                    if (!TryParseTime(NewLessonStartTimeString, out _)) return Resources.Validation_InvalidTimeFormat ?? "Invalid Start Time format (use HH:MM).";
+                    if (!TryParseTime(NewLessonStartTimeString, out _))
+                    {
+                        error = Resources.Validation_InvalidTimeFormat ?? "Invalid Start Time format (use HH:MM).";
+                    }
                 }
-                return string.Empty;
+                // Altrimenti, prova a validare la proprietà sul modello Contract sottostante
+                else if (Contract != null)
+                {
+                    // Ottieni il valore corrente della proprietà dal ViewModel (che wrappa il modello)
+                    // Questo è necessario perché TryValidateProperty vuole il valore attuale.
+                    object? propertyValue = GetPropertyValue(this, columnName);
+
+                    var validationContext = new ValidationContext(Contract, null, null)
+                    {
+                        MemberName = columnName
+                    };
+
+                    var validationResults = new List<ValidationResult>();
+                    bool isValid = Validator.TryValidateProperty(propertyValue, validationContext, validationResults);
+
+                    if (!isValid)
+                    {
+                        // Restituisce il primo errore trovato per questa proprietà
+                        error = validationResults.First().ErrorMessage ?? "Validation Error";
+                    }
+                }
+
+                return error; // Restituisce l'errore trovato o string.Empty
             }
         }
+
+        // Metodo helper per ottenere il valore di una proprietà tramite reflection
+        // (necessario per TryValidateProperty quando si valida da un ViewModel)
+        private static object? GetPropertyValue(object obj, string propertyName)
+        {
+            try
+            {
+                return obj.GetType().GetProperty(propertyName)?.GetValue(obj);
+            }
+            catch
+            {
+                // Ignora errori di reflection (es. proprietà non trovata)
+                return null;
+            }
+        }
+
+
+        // GetFirstError non è strettamente necessario per la validazione per proprietà,
+        // ma lo manteniamo se Error dovesse usarlo.
+        // Restituisce solo l'errore di NewLessonStartTimeString per ora.
         private string GetFirstError()
         {
-             if (!TryParseTime(NewLessonStartTimeString, out _)) return Resources.Validation_InvalidTimeFormat ?? "Invalid Start Time format.";
+             if (!TryParseTime(NewLessonStartTimeString, out _))
+             {
+                 return Resources.Validation_InvalidTimeFormat ?? "Invalid Start Time format.";
+             }
+             // Qui potremmo aggiungere una chiamata a Validator.ValidateObject(Contract, ...)
+             // per ottenere un errore generale se l'intero contratto non è valido, ma
+             // di solito è più utile avere errori per proprietà.
              return string.Empty;
         }
+
+        // IsContractValid rimane invariato, usa la validazione dell'intero oggetto
         public bool IsContractValid => Contract != null && Validator.TryValidateObject(Contract, new ValidationContext(Contract), null, true);
+
+        // IsLessonInputValid rimane invariato
         public bool IsLessonInputValid => TryParseTime(NewLessonStartTimeString, out _) && NewLessonDuration > TimeSpan.Zero;
+
         // --- Fine IDataErrorInfo ---
 
         // Helper Notifica CanExecute
