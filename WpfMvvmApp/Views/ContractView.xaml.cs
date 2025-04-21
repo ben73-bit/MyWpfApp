@@ -1,8 +1,9 @@
 // WpfMvvmApp/Views/ContractView.xaml.cs
-using System.Windows; // Necessario per DependencyObject, RoutedEventArgs
+using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Input; // Necessario per MouseButtonEventArgs
-using System.Windows.Media; // Necessario per VisualTreeHelper
+using System.Windows.Input;
+using System.Windows.Media;
+using WpfMvvmApp.ViewModels; // NECESSARIO per MainViewModel
 
 namespace WpfMvvmApp.Views
 {
@@ -13,38 +14,54 @@ namespace WpfMvvmApp.Views
             InitializeComponent();
         }
 
-        // NUOVO: Gestore per PreviewMouseDown sull'UserControl
+        // Gestore per deselezionare lezioni (esistente)
         private void UserControl_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
-            // Ottieni l'elemento su cui è stato fatto clic
             var originalSource = e.OriginalSource as DependencyObject;
             if (originalSource == null) return;
 
-            // Cerca la ListView delle lezioni
-            ListView? lessonsListView = FindVisualChild<ListView>(this, "LessonsListView");
+            // Trova LessonView e poi la ListView interna
+            LessonView? lessonView = FindVisualChild<LessonView>(this);
+            ListView? lessonsListView = (lessonView != null) ? FindVisualChild<ListView>(lessonView, "LessonsListView") : null;
 
-            // Se la ListView non è stata trovata (ad es., nessun contratto selezionato), esci
             if (lessonsListView == null) return;
 
-            // Controlla se il clic è avvenuto DENTRO la ListView delle lezioni
             bool clickIsInsideLessonsListView = IsDescendantOf(originalSource, lessonsListView);
 
-            // Se il clic NON è avvenuto dentro la ListView, deseleziona tutto
             if (!clickIsInsideLessonsListView)
             {
                 lessonsListView.UnselectAll();
-                // Alternativa: lessonsListView.SelectedIndex = -1;
             }
         }
 
-        // --- Helper per navigare l'Albero Visuale ---
+        // NUOVO: Gestore per il click sull'header della GridView dei Contratti
+        private void ContractsListView_HeaderClick(object sender, RoutedEventArgs e)
+        {
+            // Verifica che l'evento sia originato da un header di colonna
+            if (e.OriginalSource is GridViewColumnHeader headerClicked)
+            {
+                // Assicurati che l'header abbia un Tag (che contiene il nome della proprietà)
+                if (headerClicked.Tag is string propertyName)
+                {
+                    // Ottieni il MainViewModel associato a questa View (DataContext dell'UserControl)
+                    if (this.DataContext is MainViewModel viewModel)
+                    {
+                        // Esegui il comando di ordinamento nel MainViewModel, passando il nome della proprietà
+                        if (viewModel.SortContractsCommand.CanExecute(propertyName))
+                        {
+                            viewModel.SortContractsCommand.Execute(propertyName);
+                        }
+                    }
+                }
+            }
+        }
 
-        /// <summary>
-        /// Trova il primo figlio visuale del tipo specificato, opzionalmente con un nome specifico.
-        /// </summary>
+
+        // --- Helper per navigare l'Albero Visuale (invariati) ---
         private static T? FindVisualChild<T>(DependencyObject parent, string? childName = null) where T : DependencyObject
         {
-            if (parent == null) return null;
+            // ... (codice helper esistente) ...
+             if (parent == null) return null;
 
             T? foundChild = null;
 
@@ -52,24 +69,19 @@ namespace WpfMvvmApp.Views
             for (int i = 0; i < childrenCount; i++)
             {
                 var child = VisualTreeHelper.GetChild(parent, i);
-                // Se non è il tipo giusto, cerca ricorsivamente
                 if (!(child is T childType))
                 {
                     foundChild = FindVisualChild<T>(child, childName);
-                    // Se trovato ricorsivamente, esci
                     if (foundChild != null) break;
                 }
-                // Se è il tipo giusto
                 else
                 {
-                    // Se non serve un nome specifico o se il nome corrisponde
                     if (string.IsNullOrEmpty(childName) ||
                         (child is FrameworkElement frameworkElement && frameworkElement.Name == childName))
                     {
                         foundChild = childType;
-                        break; // Trovato, esci
+                        break;
                     }
-                    // Se il nome non corrisponde, cerca ricorsivamente nei figli di questo nodo
                     else
                     {
                          foundChild = FindVisualChild<T>(child, childName);
@@ -80,12 +92,10 @@ namespace WpfMvvmApp.Views
             return foundChild;
         }
 
-        /// <summary>
-        /// Verifica se un elemento è un discendente (diretto o indiretto) di un altro elemento nell'albero visuale.
-        /// </summary>
         private static bool IsDescendantOf(DependencyObject? element, DependencyObject? ancestor)
         {
-            if (element == null || ancestor == null) return false;
+            // ... (codice helper esistente) ...
+             if (element == null || ancestor == null) return false;
 
             DependencyObject? parent = VisualTreeHelper.GetParent(element);
             while (parent != null)

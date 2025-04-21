@@ -7,11 +7,12 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using System.Windows.Data; // NECESSARIO per ICollectionView e CollectionViewSource
 using System.Windows.Input;
 using WpfMvvmApp.Models;
 using WpfMvvmApp.Services;
 using WpfMvvmApp.Commands;
-using WpfMvvmApp.Properties; // Aggiungi using per Resources
+using WpfMvvmApp.Properties;
 
 namespace WpfMvvmApp.ViewModels
 {
@@ -25,6 +26,12 @@ namespace WpfMvvmApp.ViewModels
 
         // Collezioni e Selezione
         public ObservableCollection<ContractViewModel> Contracts { get; } = new ObservableCollection<ContractViewModel>();
+        private ICollectionView? _contractsView;
+        public ICollectionView? ContractsView
+        {
+            get => _contractsView;
+            private set => SetProperty(ref _contractsView, value);
+        }
         private ContractViewModel? _selectedContract;
         public ContractViewModel? SelectedContract
         {
@@ -35,18 +42,21 @@ namespace WpfMvvmApp.ViewModels
                 {
                     (SaveContractCommand as RelayCommand)?.RaiseCanExecuteChanged();
                     (RemoveContractCommand as RelayCommand)?.RaiseCanExecuteChanged();
-                    (DuplicateContractCommand as RelayCommand)?.RaiseCanExecuteChanged(); // Aggiorna CanExecute del nuovo comando
-                    _selectedContract?.UpdateCommandStates(); // Aggiorna stati comandi interni al ContractViewModel
+                    (DuplicateContractCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                    _selectedContract?.UpdateCommandStates();
                 }
             }
         }
+        private string _currentContractSortProperty = nameof(ContractViewModel.Company);
+        private ListSortDirection _currentContractSortDirection = ListSortDirection.Ascending;
 
         // Comandi
         public ICommand AddNewContractCommand { get; }
         public ICommand SaveContractCommand { get; }
         public ICommand RemoveContractCommand { get; }
         public ICommand SaveAllDataCommand { get; }
-        public ICommand DuplicateContractCommand { get; } // NUOVO COMANDO
+        public ICommand DuplicateContractCommand { get; }
+        public ICommand SortContractsCommand { get; }
 
         // Costruttore
         public MainViewModel()
@@ -57,69 +67,73 @@ namespace WpfMvvmApp.ViewModels
             SaveContractCommand = new RelayCommand(ExecuteSaveContract, CanExecuteSaveContract);
             RemoveContractCommand = new RelayCommand(ExecuteRemoveContract, CanExecuteRemoveContract);
             SaveAllDataCommand = new RelayCommand(ExecuteSaveAllData);
-            DuplicateContractCommand = new RelayCommand(ExecuteDuplicateContract, CanExecuteDuplicateContract); // NUOVO: Inizializza comando
+            DuplicateContractCommand = new RelayCommand(ExecuteDuplicateContract, CanExecuteDuplicateContract);
+            SortContractsCommand = new RelayCommand(ExecuteSortContracts);
 
             LoadContractsFromUserData();
             Application.Current.Exit += OnApplicationExit;
         }
 
-        // Metodo per popolare i ViewModel dai dati caricati
+        // LoadContractsFromUserData
         private void LoadContractsFromUserData()
         {
             Contracts.Clear();
             if (_currentUser?.Contracts != null)
             {
-                foreach (var contractModel in _currentUser.Contracts.OrderBy(c => c.Company).ThenBy(c => c.ContractNumber)) // Aggiunto piccolo ordinamento
+                foreach (var contractModel in _currentUser.Contracts)
                 {
                     var contractVM = new ContractViewModel(contractModel, _dialogService, _calService);
                     Contracts.Add(contractVM);
                 }
             }
-            // Seleziona il primo o null se la lista è vuota
-            SelectedContract = Contracts.FirstOrDefault();
+            ContractsView = CollectionViewSource.GetDefaultView(Contracts);
+            ApplyContractsSort();
+            SelectedContract = ContractsView?.Cast<ContractViewModel>().FirstOrDefault();
         }
 
-
+        // ExecuteAddNewContract
         private void ExecuteAddNewContract(object? parameter)
         {
              var newContractModel = new Contract
              {
-                 Company = Resources.NewContractDefault_CompanyName ?? "New Company", // Usa risorsa
-                 ContractNumber = $"{Resources.NewContractDefault_NumberPrefix ?? "CN"}-{DateTime.Now.Ticks}", // Usa risorsa
-                 TotalHours = 10, // Valore di default
-                 HourlyRate = 0, // Valore di default
-                 StartDate = DateTime.Today, // Default ragionevole
-                 // EndDate = null, // Lascia null di default
-                 Lessons = new List<Lesson>() // Lista vuota
+                 Company = Resources.NewContractDefault_CompanyName ?? "New Company",
+                 ContractNumber = $"{Resources.NewContractDefault_NumberPrefix ?? "CN"}-{DateTime.Now.Ticks}",
+                 TotalHours = 10,
+                 HourlyRate = 0,
+                 StartDate = DateTime.Today,
+                 Lessons = new List<Lesson>()
              };
              _currentUser.Contracts ??= new List<Contract>();
              _currentUser.Contracts.Add(newContractModel);
              var newContractVM = new ContractViewModel(newContractModel, _dialogService, _calService);
              Contracts.Add(newContractVM);
-             SelectedContract = newContractVM; // Seleziona il nuovo contratto aggiunto
+             ContractsView?.MoveCurrentTo(newContractVM);
+             SelectedContract = newContractVM;
         }
 
+        // ExecuteSaveContract
         private void ExecuteSaveContract(object? parameter)
         {
              if (SelectedContract?.Contract != null && SelectedContract.IsContractValid)
              {
-                 // Messaggio aggiornato per usare le risorse
                  MessageBox.Show(string.Format(Resources.MsgBox_SaveContractNoted_Text ?? "Contract '{0}' changes noted (will be saved on exit or via Save All).", SelectedContract.Company),
                                  Resources.MsgBox_Title_SaveContract ?? "Save Contract",
                                  MessageBoxButton.OK, MessageBoxImage.Information);
              }
         }
+        // *** CORPO COMPLETO CanExecuteSaveContract ***
         private bool CanExecuteSaveContract(object? parameter)
         {
             return SelectedContract != null && SelectedContract.IsContractValid;
         }
 
+        // ExecuteRemoveContract
         private void ExecuteRemoveContract(object? parameter)
         {
             var contractToRemoveVM = parameter as ContractViewModel ?? SelectedContract;
             if (contractToRemoveVM?.Contract == null) return;
 
-            // Messaggio aggiornato per usare le risorse
+            // *** CORRETTI ARGOMENTI MessageBox.Show ***
             var result = MessageBox.Show(string.Format(Resources.MsgBox_ConfirmContractDeletion_Text ?? "Are you sure you want to delete the contract '{0} - {1}'?\nThis will also delete all associated lessons.", contractToRemoveVM.Company, contractToRemoveVM.ContractNumber),
                                          Resources.MsgBox_Title_ConfirmContractDeletion ?? "Confirm Contract Deletion",
                                          MessageBoxButton.YesNo, MessageBoxImage.Warning);
@@ -132,60 +146,46 @@ namespace WpfMvvmApp.ViewModels
                 if (removedFromModel || removedFromVMCollection)
                 {
                     Debug.WriteLine($"Contract '{contractToRemoveVM.ContractNumber}' removed.");
-                    SelectedContract = Contracts.FirstOrDefault(); // Seleziona il primo rimanente
+                    // La selezione si aggiornerà automaticamente perché la vista cambia
                 }
                 else { Debug.WriteLine($"Failed to remove contract '{contractToRemoveVM.ContractNumber}'."); }
             }
         }
+        // *** CORPO COMPLETO CanExecuteRemoveContract ***
         private bool CanExecuteRemoveContract(object? parameter)
         {
             return SelectedContract != null;
         }
 
-        // *** NUOVO: Metodo Esecuzione Duplica Contratto ***
+        // ExecuteDuplicateContract
         private void ExecuteDuplicateContract(object? parameter)
         {
             if (SelectedContract?.Contract == null) return;
-
             var originalContract = SelectedContract.Contract;
-
-            // Crea il nuovo modello copiando i dati
             var duplicatedContractModel = new Contract
             {
-                // Aggiunge " - Copy" al nome e numero per distinguerlo
                 Company = $"{originalContract.Company} ({Resources.DuplicateContractSuffix_Company ?? "Copy"})",
                 ContractNumber = $"{originalContract.ContractNumber} ({Resources.DuplicateContractSuffix_Number ?? "Copy"})",
                 HourlyRate = originalContract.HourlyRate,
                 TotalHours = originalContract.TotalHours,
                 StartDate = originalContract.StartDate,
                 EndDate = originalContract.EndDate,
-                // IMPORTANTE: NON copiare le lezioni
                 Lessons = new List<Lesson>()
             };
-
-            // Aggiungi il nuovo modello alla lista del User
-             _currentUser.Contracts ??= new List<Contract>();
-             _currentUser.Contracts.Add(duplicatedContractModel);
-
-             // Crea il nuovo ViewModel
-             var newContractVM = new ContractViewModel(duplicatedContractModel, _dialogService, _calService);
-
-             // Aggiungi il nuovo ViewModel alla ObservableCollection
-             Contracts.Add(newContractVM);
-
-             // Seleziona il contratto appena duplicato
-             SelectedContract = newContractVM;
+            _currentUser.Contracts ??= new List<Contract>();
+            _currentUser.Contracts.Add(duplicatedContractModel);
+            var newContractVM = new ContractViewModel(duplicatedContractModel, _dialogService, _calService);
+            Contracts.Add(newContractVM);
+            ContractsView?.MoveCurrentTo(newContractVM);
+            SelectedContract = newContractVM;
         }
-
-        // *** NUOVO: Metodo CanExecute Duplica Contratto ***
+        // *** CORPO COMPLETO CanExecuteDuplicateContract ***
         private bool CanExecuteDuplicateContract(object? parameter)
         {
-            // Può duplicare solo se c'è un contratto selezionato
             return SelectedContract != null;
         }
 
-
-        // Metodo per salvare tutti i dati
+        // ExecuteSaveAllData
         private void ExecuteSaveAllData(object? parameter = null)
         {
             if (_currentUser == null)
@@ -195,16 +195,12 @@ namespace WpfMvvmApp.ViewModels
                                 Resources.MsgBox_Title_SaveError ?? "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
             }
-
             Debug.WriteLine("ExecuteSaveAllData: Attempting to save...");
             bool success = false;
             try
             {
                  success = _persistenceService.SaveUserData(_currentUser);
-                 if(success)
-                 {
-                     Debug.WriteLine("ExecuteSaveAllData: Save reported successful by service.");
-                 }
+                 if(success) { Debug.WriteLine("ExecuteSaveAllData: Save reported successful by service."); }
                  else
                  {
                      Debug.WriteLine("ExecuteSaveAllData: Save reported FAILED by service (returned false).");
@@ -221,7 +217,7 @@ namespace WpfMvvmApp.ViewModels
             }
         }
 
-        // Gestore evento per l'uscita dall'applicazione
+        // OnApplicationExit
         private void OnApplicationExit(object sender, ExitEventArgs e)
         {
             Debug.WriteLine("OnApplicationExit: Saving data...");
@@ -229,6 +225,35 @@ namespace WpfMvvmApp.ViewModels
             try { Application.Current.Exit -= OnApplicationExit; } catch { }
         }
 
+        // --- Logica per Ordinamento Contratti ---
+        private void ExecuteSortContracts(object? parameter)
+        {
+            if (parameter is not string propertyName || ContractsView == null) return;
+            var newDirection = ListSortDirection.Ascending;
+            if (_currentContractSortProperty == propertyName && _currentContractSortDirection == ListSortDirection.Ascending)
+            {
+                newDirection = ListSortDirection.Descending;
+            }
+            _currentContractSortProperty = propertyName;
+            _currentContractSortDirection = newDirection;
+            ApplyContractsSort();
+        }
+        private void ApplyContractsSort()
+        {
+            if (ContractsView == null) return;
+            using (ContractsView.DeferRefresh())
+            {
+                ContractsView.SortDescriptions.Clear();
+                if (!string.IsNullOrEmpty(_currentContractSortProperty))
+                {
+                    ContractsView.SortDescriptions.Add(new SortDescription(_currentContractSortProperty, _currentContractSortDirection));
+                    string secondarySort = _currentContractSortProperty == nameof(ContractViewModel.Company)
+                                            ? nameof(ContractViewModel.ContractNumber)
+                                            : nameof(ContractViewModel.Company);
+                    ContractsView.SortDescriptions.Add(new SortDescription(secondarySort, ListSortDirection.Ascending));
+                }
+            }
+        }
 
         // --- Implementazione INotifyPropertyChanged ---
         public event PropertyChangedEventHandler? PropertyChanged;
