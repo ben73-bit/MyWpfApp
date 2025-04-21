@@ -402,5 +402,10 @@
   <data name="ContractList_NumberHeader" xml:space="preserve">
     <value>Numero Contratto</value>
   </data>
-
+    <data name="MsgBox_ImportResult_AddedAndSkipped_Text" xml:space="preserve">
+    <value>{0} lezioni importate, {1} duplicati saltati.</value>
+  </data>
+  <data name="MsgBox_ImportResult_OnlySkipped_Text" xml:space="preserve">
+    <value>Nessuna nuova lezione importata, {0} duplicati trovati e saltati.</value>
+  </data>
 </root>

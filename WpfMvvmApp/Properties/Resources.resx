@@ -420,5 +420,11 @@
   <data name="ContractList_NumberHeader" xml:space="preserve">
     <value>Contract Number</value>
   </data>
+  <data name="MsgBox_ImportResult_AddedAndSkipped_Text" xml:space="preserve">
+    <value>{0} lessons imported, {1} duplicates skipped.</value>
+  </data>
+  <data name="MsgBox_ImportResult_OnlySkipped_Text" xml:space="preserve">
+    <value>No new lessons imported, {0} duplicates found and skipped.</value>
+  </data>
 
 </root>

@@ -187,6 +187,17 @@ namespace WpfMvvmApp.Properties
         public static string? ContractList_CompanyHeader => GetString("ContractList_CompanyHeader");
         public static string? ContractList_NumberHeader => GetString("ContractList_NumberHeader");
 
+        // NUOVO: Messaggio Importazione con Aggiunte e Saltate
+        /// <summary>
+        ///   Looks up a localized string similar to {0} lessons imported, {1} duplicates skipped..
+        /// </summary>
+        public static string? MsgBox_ImportResult_AddedAndSkipped_Text => GetString("MsgBox_ImportResult_AddedAndSkipped_Text");
+
+        // NUOVO: Messaggio Importazione con Solo Saltate
+        /// <summary>
+        ///   Looks up a localized string similar to No new lessons imported, {0} duplicates found and skipped..
+        /// </summary>
+        public static string? MsgBox_ImportResult_OnlySkipped_Text => GetString("MsgBox_ImportResult_OnlySkipped_Text");
         // --- Fine Proprietà Stringhe ---
 
         // Costruttore privato per prevenire istanziazione

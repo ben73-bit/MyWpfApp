@@ -164,7 +164,6 @@ namespace WpfMvvmApp.ViewModels
         // INotifyPropertyChanged
         public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
-        // *** CORPO COMPLETO SetProperty ***
         protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(storage, value)) return false;
@@ -174,9 +173,7 @@ namespace WpfMvvmApp.ViewModels
         }
 
         // --- IDataErrorInfo ---
-        // *** CORPO COMPLETO Error ***
         string IDataErrorInfo.Error => GetFirstError();
-        // *** CORPO COMPLETO this[] ***
         string IDataErrorInfo.this[string columnName]
         {
             get
@@ -185,19 +182,15 @@ namespace WpfMvvmApp.ViewModels
                 {
                     if (!TryParseTime(NewLessonStartTimeString, out _)) return Resources.Validation_InvalidTimeFormat ?? "Invalid Start Time format (use HH:MM).";
                 }
-                return string.Empty; // Ritorna sempre stringa vuota se non ci sono errori per la colonna
+                return string.Empty;
             }
         }
-        // *** CORPO COMPLETO GetFirstError ***
         private string GetFirstError()
         {
              if (!TryParseTime(NewLessonStartTimeString, out _)) return Resources.Validation_InvalidTimeFormat ?? "Invalid Start Time format.";
-             // Aggiungere qui altri controlli di validazione a livello di oggetto se necessario
-             return string.Empty; // Ritorna sempre stringa vuota se non ci sono errori
+             return string.Empty;
         }
-        // *** CORRETTO: Rimosso ; finale ***
         public bool IsContractValid => Contract != null && Validator.TryValidateObject(Contract, new ValidationContext(Contract), null, true);
-        // *** CORRETTO: Rimosso ; finale ***
         public bool IsLessonInputValid => TryParseTime(NewLessonStartTimeString, out _) && NewLessonDuration > TimeSpan.Zero;
         // --- Fine IDataErrorInfo ---
 
@@ -218,7 +211,6 @@ namespace WpfMvvmApp.ViewModels
 
 
         // --- Metodi Esecuzione Comandi Lezione ---
-        // *** CORPO COMPLETO ExecuteAddOrUpdateLesson (con rimozione riordino manuale) ***
         private void ExecuteAddOrUpdateLesson(object? parameter)
         {
             if (Contract == null || !CanExecuteAddOrUpdateLesson(parameter)) return;
@@ -237,7 +229,6 @@ namespace WpfMvvmApp.ViewModels
                 _lessonToEdit.StartDateTime = finalStartDateTime;
                 _lessonToEdit.Duration = NewLessonDuration;
                 _lessonToEdit.Summary = NewLessonSummary;
-                // La vista si aggiornerà da sola se l'ordinamento è su StartDateTime
                 if (oldDuration != _lessonToEdit.Duration) requiresNotify = true;
             }
             else
@@ -253,8 +244,7 @@ namespace WpfMvvmApp.ViewModels
                 };
                 Contract.Lessons ??= new List<Lesson>();
                 Contract.Lessons.Add(newLesson);
-                // Aggiunta alla collezione sorgente (ICollectionView si aggiorna)
-                Lessons.Add(newLesson); // Semplificato: Add invece di Insert ordinato, ICollectionView gestisce l'ordine
+                Lessons.Add(newLesson);
                 requiresNotify = true;
             }
 
@@ -264,7 +254,6 @@ namespace WpfMvvmApp.ViewModels
             _lessonToEdit = null;
         }
 
-        // *** CORPI COMPLETI CanExecute... ***
         private bool CanExecuteAddOrUpdateLesson(object? parameter) { return Contract != null && IsLessonInputValid; }
         private void ExecuteEditLesson(object? parameter) { if (parameter is Lesson lessonToEdit && CanExecuteEditOrRemoveLesson(parameter)) { IsEditingLesson = true; _lessonToEdit = lessonToEdit; NewLessonDate = lessonToEdit.StartDateTime.Date; NewLessonStartTimeString = lessonToEdit.StartDateTime.ToString("HH:mm"); NewLessonDuration = lessonToEdit.Duration; NewLessonSummary = lessonToEdit.Summary; } }
         private void ExecuteRemoveLesson(object? parameter) { if (parameter is Lesson lessonToRemove && Contract?.Lessons != null && CanExecuteEditOrRemoveLesson(parameter)) { var result = MessageBox.Show(string.Format(Resources.MsgBox_ConfirmRemoveLesson_Text ?? "Remove lesson starting {0:g}?", lessonToRemove.StartDateTime), Resources.MsgBox_Title_ConfirmRemoval ?? "Confirm", MessageBoxButton.YesNo, MessageBoxImage.Warning); if (result == MessageBoxResult.Yes) { bool removedFromView = Lessons.Remove(lessonToRemove); bool removedFromModel = Contract.Lessons?.Remove(lessonToRemove) ?? false; if (removedFromView || removedFromModel) { NotifyBillingRelatedChanges(); } } } }
@@ -275,56 +264,171 @@ namespace WpfMvvmApp.ViewModels
         private void ExecuteToggleLessonConfirmation(object? parameter) { if (parameter is Lesson lessonToToggle && CanExecuteToggleLessonConfirmation(parameter)) { lessonToToggle.IsConfirmed = !lessonToToggle.IsConfirmed; NotifyBillingRelatedChanges(); (BillSelectedLessonsCommand as RelayCommand)?.RaiseCanExecuteChanged(); } }
         private bool CanExecuteToggleLessonConfirmation(object? parameter) { return parameter is Lesson && !IsEditingLesson; }
         private bool CanExecuteEditOrRemoveLesson(object? parameter) { return parameter is Lesson && !IsEditingLesson; }
-        // *** CORPO COMPLETO ExecuteDuplicateLesson (semplificato Add) ***
         private void ExecuteDuplicateLesson(object? parameter)
         {
             if (parameter is not Lesson originalLesson || Contract == null || !CanExecuteDuplicateLesson(parameter)) return;
             try
             {
-                var duplicatedLesson = new Lesson { /* ... creazione ... */ };
+                var duplicatedLesson = new Lesson
+                {
+                    Uid = Guid.NewGuid().ToString(),
+                    StartDateTime = originalLesson.StartDateTime,
+                    Duration = originalLesson.Duration,
+                    Summary = originalLesson.Summary,
+                    Description = originalLesson.Description,
+                    Location = originalLesson.Location,
+                    Contract = this.Contract,
+                    IsConfirmed = false,
+                    IsBilled = false,
+                    InvoiceNumber = null,
+                    InvoiceDate = null
+                };
                 Contract.Lessons ??= new List<Lesson>();
                 Contract.Lessons.Add(duplicatedLesson);
-                Lessons.Add(duplicatedLesson); // Aggiungi alla sorgente, la vista si aggiornerà
+                Lessons.Add(duplicatedLesson);
                 NotifyBillingRelatedChanges();
             }
-            catch (Exception ex) { Debug.WriteLine($"Error duplicating lesson: {ex}");
-             // MODIFICATO: Usa string.Format con ex.Message
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error duplicating lesson: {ex}");
                 MessageBox.Show(string.Format(Resources.MsgBox_GenericError_Text ?? "An unexpected error occurred: {0}", ex.Message),
-                Resources.MsgBox_Title_InternalError ?? "Internal Error",
-                MessageBoxButton.OK, MessageBoxImage.Error);/* ... gestione errore ... */ }
+                                Resources.MsgBox_Title_InternalError ?? "Internal Error",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
         private bool CanExecuteDuplicateLesson(object? parameter) { return parameter is Lesson && !IsEditingLesson; }
-        // *** CORPO COMPLETO ExecuteImportLessons (semplificato Add) ***
+
+        // ExecuteImportLessons - MODIFICATO per controllo duplicati
         private void ExecuteImportLessons(object? parameter)
         {
-            if (Contract == null) { /* ... errore ... */ return; }
-            string? filePath = _dialogService.ShowOpenFileDialog(/* ... */);
+            if (Contract == null)
+            {
+                MessageBox.Show(Resources.MsgBox_SelectContractBeforeImport_Text ?? "Select contract first.", Resources.MsgBox_Title_NoContractSelected ?? "No Contract", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            string? filePath = _dialogService.ShowOpenFileDialog("iCalendar files (*.ics)|*.ics|All files (*.*)|*.*", Resources.ImportIcsButton_Content ?? "Import Lessons");
             if (string.IsNullOrEmpty(filePath)) return;
+
             try
             {
-                List<Lesson> imported = _calService.ImportLessons(filePath);
-                if (imported.Count == 0) { /* ... messaggio ... */ return; }
-                int addedCount = 0;
-                Contract.Lessons ??= new List<Lesson>();
-                // Non serve ordinare imported qui
-                foreach (var lesson in imported)
+                List<Lesson> importedLessons = _calService.ImportLessons(filePath);
+                if (importedLessons.Count == 0)
                 {
-                    // TODO: Controllo duplicati
-                    lesson.Contract = Contract;
-                    Contract.Lessons.Add(lesson);
-                    Lessons.Add(lesson); // Aggiungi alla sorgente
+                    MessageBox.Show(Resources.MsgBox_NoLessonsToImport_Text ?? "No lessons found.", Resources.MsgBox_Title_ImportResult ?? "Import", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                int addedCount = 0;
+                int skippedCount = 0;
+                Contract.Lessons ??= new List<Lesson>();
+
+                var existingLessonKeys = new HashSet<string>(
+                    Lessons.Select(l => !string.IsNullOrEmpty(l.Uid)
+                                        ? $"UID:{l.Uid}"
+                                        : $"DT:{l.StartDateTime:O}|DUR:{l.Duration.Ticks}")
+                );
+
+                foreach (var importedLesson in importedLessons)
+                {
+                    string lessonKey;
+                    if (!string.IsNullOrEmpty(importedLesson.Uid))
+                    {
+                        lessonKey = $"UID:{importedLesson.Uid}";
+                    }
+                    else
+                    {
+                        lessonKey = $"DT:{importedLesson.StartDateTime:O}|DUR:{importedLesson.Duration.Ticks}";
+                    }
+
+                    if (existingLessonKeys.Contains(lessonKey))
+                    {
+                        skippedCount++;
+                        Debug.WriteLine($"Skipping duplicate lesson: {lessonKey}");
+                        continue;
+                    }
+
+                    importedLesson.Contract = Contract;
+                    Contract.Lessons.Add(importedLesson);
+                    Lessons.Add(importedLesson);
+                    existingLessonKeys.Add(lessonKey); // Aggiungi chiave nuova per controllo duplicati interni al file
                     addedCount++;
                 }
-                if (addedCount > 0) { /* ... messaggio successo ... */ } else { /* ... messaggio no nuove ... */ }
+
+                string finalMessage;
+                if (addedCount > 0 && skippedCount > 0)
+                {
+                    finalMessage = string.Format(Resources.MsgBox_ImportResult_AddedAndSkipped_Text ?? "{0} lessons imported, {1} duplicates skipped.", addedCount, skippedCount);
+                }
+                else if (addedCount > 0)
+                {
+                    finalMessage = string.Format(Resources.MsgBox_ImportSuccessful_Text ?? "{0} lessons imported successfully.", addedCount);
+                }
+                else if (skippedCount > 0)
+                {
+                    finalMessage = string.Format(Resources.MsgBox_ImportResult_OnlySkipped_Text ?? "No new lessons imported, {0} duplicates found and skipped.", skippedCount);
+                }
+                else
+                {
+                    finalMessage = Resources.MsgBox_NoLessonsToImport_Text ?? "No valid lesson events found in the selected file.";
+                }
+
+                MessageBox.Show(finalMessage, Resources.MsgBox_Title_ImportComplete ?? "Import Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                if (addedCount > 0)
+                {
+                    NotifyBillingRelatedChanges();
+                }
+
             }
-            catch (Exception ex) {  Debug.WriteLine($"Error during lesson import: {ex}");
-                // Assicurati che usi string.Format e ex.Message
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error during lesson import: {ex}");
                 MessageBox.Show(string.Format(Resources.MsgBox_ImportError_Text ?? "Error importing:\n{0}", ex.Message),
-                Resources.MsgBox_Title_ImportError ?? "Import Error", MessageBoxButton.OK, MessageBoxImage.Error);/* ... gestione errore ... */ }
+                                Resources.MsgBox_Title_ImportError ?? "Import Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
-        private void ExecuteExportLessons(object? parameter) { /* ... usa this.Lessons (sorgente) ... */ }
+
+        // ExecuteExportLessons
+        private void ExecuteExportLessons(object? parameter)
+        {
+             if (Contract == null) { MessageBox.Show(Resources.MsgBox_SelectContractBeforeExport_Text ?? "Select contract first.", Resources.MsgBox_Title_NoContractSelected ?? "No Contract", MessageBoxButton.OK, MessageBoxImage.Warning); return; }
+             if (!Lessons.Any()) { MessageBox.Show(Resources.MsgBox_NoLessonsToExport_Text ?? "No lessons to export.", Resources.MsgBox_Title_Export ?? "Export", MessageBoxButton.OK, MessageBoxImage.Information); return; }
+             string defaultFileName = $"Lessons_{Contract.Company}_{Contract.ContractNumber}.ics".Replace(" ", "_");
+             foreach (char c in System.IO.Path.GetInvalidFileNameChars()) { defaultFileName = defaultFileName.Replace(c, '_'); }
+             string? filePath = _dialogService.ShowSaveFileDialog("iCalendar files (*.ics)|*.ics", defaultFileName, Resources.ExportIcsButton_Content ?? "Export Lessons");
+             if (string.IsNullOrEmpty(filePath)) return;
+             try
+             {
+                 string contractInfo = $"{Contract.Company} - {Contract.ContractNumber}";
+                 // Passa la collezione sorgente Lessons al servizio
+                 bool success = _calService.ExportLessons(this.Lessons, filePath, contractInfo);
+                 if (success) { MessageBox.Show(string.Format(Resources.MsgBox_ExportSuccessful_Text ?? "Exported to:\n{0}", filePath), Resources.MsgBox_Title_ExportComplete ?? "Export Complete", MessageBoxButton.OK, MessageBoxImage.Information); }
+                 else { MessageBox.Show(Resources.MsgBox_ExportError_Text ?? "Export failed.", Resources.MsgBox_Title_ExportError ?? "Export Error", MessageBoxButton.OK, MessageBoxImage.Warning); }
+             }
+             catch (Exception ex)
+             {
+                 Debug.WriteLine($"Error during lesson export: {ex}");
+                 MessageBox.Show(string.Format(Resources.MsgBox_ExportFileError_Text ?? "Error exporting file:\n{0}", ex.Message), Resources.MsgBox_Title_ExportError ?? "Export Error", MessageBoxButton.OK, MessageBoxImage.Error);
+             }
+        }
         private bool CanExecuteImportExportLessons(object? parameter) { return Contract != null && !IsEditingLesson; }
-        private void ExecuteBillSelectedLessons(object? parameter) { /* ... */ }
+        private void ExecuteBillSelectedLessons(object? parameter)
+        {
+             if (parameter is not IList selectedItems || selectedItems.Count == 0 || !CanExecuteBillSelectedLessons(parameter)) return;
+             var lessonsToBill = selectedItems.OfType<Lesson>().Where(l => l.IsConfirmed && !l.IsBilled).ToList();
+             if (!lessonsToBill.Any()) { MessageBox.Show(Resources.MsgBox_NoLessonsToBill_Text ?? "No lessons to bill.", Resources.MsgBox_Title_Billing ?? "Billing", MessageBoxButton.OK, MessageBoxImage.Information); return; }
+             var inputDialog = new InvoiceInputDialog { Owner = Application.Current.MainWindow, Title = Resources.MsgBox_Title_Billing ?? "Enter Invoice Details" };
+             if (inputDialog.ShowDialog() == true)
+             {
+                 string invoiceNumber = inputDialog.InvoiceNumber;
+                 DateTime? invoiceDate = inputDialog.InvoiceDate;
+                 if (!invoiceDate.HasValue) { MessageBox.Show(Resources.MsgBox_InvoiceDateError_Text ?? "Date error.", Resources.MsgBox_Title_InternalError ?? "Error", MessageBoxButton.OK, MessageBoxImage.Error); return; }
+                 foreach (var lesson in lessonsToBill) { lesson.IsBilled = true; lesson.InvoiceNumber = invoiceNumber; lesson.InvoiceDate = invoiceDate.Value; }
+                 NotifyBillingRelatedChanges();
+                 (BillSelectedLessonsCommand as RelayCommand)?.RaiseCanExecuteChanged();
+                 MessageBox.Show(string.Format(Resources.MsgBox_BillingSuccessful_Text ?? "{0} lessons billed with #{1} on {2:d}.", lessonsToBill.Count, invoiceNumber, invoiceDate.Value), Resources.MsgBox_Title_BillingComplete ?? "Billing Complete", MessageBoxButton.OK, MessageBoxImage.Information);
+             }
+        }
         private bool CanExecuteBillSelectedLessons(object? parameter) { if (IsEditingLesson) return false; if (parameter is IList selectedItems && selectedItems.Count > 0) { return selectedItems.OfType<Lesson>().Any(l => l.IsConfirmed && !l.IsBilled); } return false; }
 
         // --- Logica per Ordinamento ---
@@ -362,16 +466,13 @@ namespace WpfMvvmApp.ViewModels
         private void NotifyCalculatedHoursChanged() { OnPropertyChanged(nameof(TotalInsertedHours)); OnPropertyChanged(nameof(TotalConfirmedHours)); OnPropertyChanged(nameof(BilledHours)); OnPropertyChanged(nameof(RemainingHours)); }
         private void NotifyBillingRelatedChanges() { NotifyCalculatedHoursChanged(); OnPropertyChanged(nameof(TotalBilledAmount)); OnPropertyChanged(nameof(TotalConfirmedUnbilledAmount)); OnPropertyChanged(nameof(TotalPotentialAmount)); }
         public void UpdateCommandStates() { NotifyAllCanExecuteChanged(); }
-        // *** CORPO COMPLETO TryParseTime ***
         private bool TryParseTime(string? input, out TimeSpan result)
         {
-             result = TimeSpan.Zero; // Inizializza parametro out
+             result = TimeSpan.Zero;
              if (string.IsNullOrWhiteSpace(input)) return false;
-             // Prova a parsare, il risultato viene messo in 'result'
              return TimeSpan.TryParseExact(input, @"hh\:mm", CultureInfo.InvariantCulture, TimeSpanStyles.None, out result);
         }
-        // *** CORPO COMPLETO FindInsertionIndex (anche se non più strettamente necessario per la vista) ***
-        private int FindInsertionIndex(Lesson newLesson)
+        private int FindInsertionIndex(Lesson newLesson) // Non più usato per aggiungere, ma lo lascio
         {
             for (int i = 0; i < Lessons.Count; i++)
             {
