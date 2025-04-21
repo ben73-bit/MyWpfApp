@@ -287,7 +287,11 @@ namespace WpfMvvmApp.ViewModels
                 Lessons.Add(duplicatedLesson); // Aggiungi alla sorgente, la vista si aggiornerà
                 NotifyBillingRelatedChanges();
             }
-            catch (Exception ex) { /* ... gestione errore ... */ }
+            catch (Exception ex) { Debug.WriteLine($"Error duplicating lesson: {ex}");
+             // MODIFICATO: Usa string.Format con ex.Message
+                MessageBox.Show(string.Format(Resources.MsgBox_GenericError_Text ?? "An unexpected error occurred: {0}", ex.Message),
+                Resources.MsgBox_Title_InternalError ?? "Internal Error",
+                MessageBoxButton.OK, MessageBoxImage.Error);/* ... gestione errore ... */ }
         }
         private bool CanExecuteDuplicateLesson(object? parameter) { return parameter is Lesson && !IsEditingLesson; }
         // *** CORPO COMPLETO ExecuteImportLessons (semplificato Add) ***
@@ -313,7 +317,10 @@ namespace WpfMvvmApp.ViewModels
                 }
                 if (addedCount > 0) { /* ... messaggio successo ... */ } else { /* ... messaggio no nuove ... */ }
             }
-            catch (Exception ex) { /* ... gestione errore ... */ }
+            catch (Exception ex) {  Debug.WriteLine($"Error during lesson import: {ex}");
+                // Assicurati che usi string.Format e ex.Message
+                MessageBox.Show(string.Format(Resources.MsgBox_ImportError_Text ?? "Error importing:\n{0}", ex.Message),
+                Resources.MsgBox_Title_ImportError ?? "Import Error", MessageBoxButton.OK, MessageBoxImage.Error);/* ... gestione errore ... */ }
         }
         private void ExecuteExportLessons(object? parameter) { /* ... usa this.Lessons (sorgente) ... */ }
         private bool CanExecuteImportExportLessons(object? parameter) { return Contract != null && !IsEditingLesson; }

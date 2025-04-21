@@ -352,7 +352,7 @@
     <value>No new lessons found to import. This might happen if all lessons in the file already exist in the contract or if the file was empty.</value>
   </data>
   <data name="MsgBox_GenericError_Text" xml:space="preserve">
-    <value>An unexpected error occurred.</value>
+    <value>An unexpected error occurred: {0} </value>
   </data>
 
   <!-- ContractView Details/Summary Strings -->

@@ -336,7 +336,7 @@
     <value>Nessuna nuova lezione trovata da importare. Questo può accadere se tutte le lezioni nel file esistono già nel contratto o se il file era vuoto.</value>
   </data>
   <data name="MsgBox_GenericError_Text" xml:space="preserve">
-    <value>Si è verificato un errore imprevisto.</value>
+    <value>Si è verificato un errore imprevisto: {0} </value>
   </data>
 
   <!-- Stringhe ContractView -->
