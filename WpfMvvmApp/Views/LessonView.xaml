@@ -101,7 +101,12 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{Binding Source={x:Static properties:Resources.LessonInput_StartLabel}, Mode=OneWay}" VerticalAlignment="Center" Margin="0,0,5,0"/>
-                <DatePicker Grid.Column="1" SelectedDate="{Binding NewLessonDate, UpdateSourceTrigger=PropertyChanged}" Width="110" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                <!-- DatePicker - MODIFICATO Width -->
+                <DatePicker Grid.Column="1"
+                            SelectedDate="{Binding NewLessonDate, UpdateSourceTrigger=PropertyChanged}"
+                            Width="175" 
+                            VerticalAlignment="Center"
+                            Margin="0,0,5,0"/>
                 <TextBlock Grid.Column="2" Text="{Binding Source={x:Static properties:Resources.LessonInput_TimeSeparatorLabel}, Mode=OneWay}" VerticalAlignment="Center" Margin="0,0,5,0"/>
                 <TextBox Grid.Column="3" Width="50" ToolTip="{Binding Source={x:Static properties:Resources.LessonInput_TimeToolTip}, Mode=OneWay}" Margin="0,0,10,0"
                          Text="{Binding NewLessonStartTimeString, UpdateSourceTrigger=PropertyChanged, ValidatesOnDataErrors=True}"
@@ -124,11 +129,11 @@
         <!-- Riga 2: Lista Lezioni -->
         <ListView Grid.Row="2"
                   Name="LessonsListView"
-                  ItemsSource="{Binding LessonsView}" 
+                  ItemsSource="{Binding LessonsView}"
                   ScrollViewer.VerticalScrollBarVisibility="Auto"
                   SelectionMode="Extended"
                   IsSynchronizedWithCurrentItem="True"
-                  GridViewColumnHeader.Click="LessonsListView_HeaderClick"> <!-- NUOVO: Handler Click Header -->
+                  GridViewColumnHeader.Click="LessonsListView_HeaderClick">
             <i:Interaction.Triggers>
                 <i:KeyTrigger Key="Delete">
                     <i:InvokeCommandAction Command="{Binding RemoveSelectedLessonsCommand}" CommandParameter="{Binding ElementName=LessonsListView, Path=SelectedItems}"/>
@@ -177,7 +182,7 @@
                              </Style>
                         </GridViewColumn.HeaderContainerStyle>
                     </GridViewColumn>
-                    <!-- Colonna Importo - CORRETTA -->
+                    <!-- Colonna Importo -->
                     <GridViewColumn Header="{Binding Source={x:Static properties:Resources.LessonList_AmountHeader}, Mode=OneWay}" Width="80">
                         <GridViewColumn.HeaderContainerStyle>
                              <Style TargetType="{x:Type GridViewColumnHeader}">
