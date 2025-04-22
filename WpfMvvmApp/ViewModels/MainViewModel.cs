@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO; // NECESSARIO per File.Copy
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -57,6 +58,8 @@ namespace WpfMvvmApp.ViewModels
         public ICommand SaveAllDataCommand { get; }
         public ICommand DuplicateContractCommand { get; }
         public ICommand SortContractsCommand { get; }
+        public ICommand BackupDataCommand { get; } // NUOVO: Backup
+        public ICommand RestoreDataCommand { get; } // NUOVO: Ripristino
 
         // Costruttore
         public MainViewModel()
@@ -69,6 +72,9 @@ namespace WpfMvvmApp.ViewModels
             SaveAllDataCommand = new RelayCommand(ExecuteSaveAllData);
             DuplicateContractCommand = new RelayCommand(ExecuteDuplicateContract, CanExecuteDuplicateContract);
             SortContractsCommand = new RelayCommand(ExecuteSortContracts);
+            // NUOVO: Inizializza comandi Backup/Ripristino
+            BackupDataCommand = new RelayCommand(ExecuteBackupData);
+            RestoreDataCommand = new RelayCommand(ExecuteRestoreData);
 
             LoadContractsFromUserData();
             Application.Current.Exit += OnApplicationExit;
@@ -87,8 +93,8 @@ namespace WpfMvvmApp.ViewModels
                 }
             }
             ContractsView = CollectionViewSource.GetDefaultView(Contracts);
-            ApplyContractsSort();
-            SelectedContract = ContractsView?.Cast<ContractViewModel>().FirstOrDefault();
+            ApplyContractsSort(); // Applica ordinamento alla vista
+            SelectedContract = ContractsView?.Cast<ContractViewModel>().FirstOrDefault(); // Seleziona dalla vista
         }
 
         // ExecuteAddNewContract
@@ -106,9 +112,9 @@ namespace WpfMvvmApp.ViewModels
              _currentUser.Contracts ??= new List<Contract>();
              _currentUser.Contracts.Add(newContractModel);
              var newContractVM = new ContractViewModel(newContractModel, _dialogService, _calService);
-             Contracts.Add(newContractVM);
-             ContractsView?.MoveCurrentTo(newContractVM);
-             SelectedContract = newContractVM;
+             Contracts.Add(newContractVM); // Aggiunge alla sorgente
+             ContractsView?.MoveCurrentTo(newContractVM); // Sposta selezione nella vista
+             SelectedContract = newContractVM; // Aggiorna proprietà
         }
 
         // ExecuteSaveContract
@@ -121,7 +127,6 @@ namespace WpfMvvmApp.ViewModels
                                  MessageBoxButton.OK, MessageBoxImage.Information);
              }
         }
-        // *** CORPO COMPLETO CanExecuteSaveContract ***
         private bool CanExecuteSaveContract(object? parameter)
         {
             return SelectedContract != null && SelectedContract.IsContractValid;
@@ -133,7 +138,6 @@ namespace WpfMvvmApp.ViewModels
             var contractToRemoveVM = parameter as ContractViewModel ?? SelectedContract;
             if (contractToRemoveVM?.Contract == null) return;
 
-            // *** CORRETTI ARGOMENTI MessageBox.Show ***
             var result = MessageBox.Show(string.Format(Resources.MsgBox_ConfirmContractDeletion_Text ?? "Are you sure you want to delete the contract '{0} - {1}'?\nThis will also delete all associated lessons.", contractToRemoveVM.Company, contractToRemoveVM.ContractNumber),
                                          Resources.MsgBox_Title_ConfirmContractDeletion ?? "Confirm Contract Deletion",
                                          MessageBoxButton.YesNo, MessageBoxImage.Warning);
@@ -141,17 +145,16 @@ namespace WpfMvvmApp.ViewModels
             if (result == MessageBoxResult.Yes)
             {
                 bool removedFromModel = _currentUser.Contracts?.Remove(contractToRemoveVM.Contract) ?? false;
-                bool removedFromVMCollection = Contracts.Remove(contractToRemoveVM);
+                bool removedFromVMCollection = Contracts.Remove(contractToRemoveVM); // Rimuove da sorgente
 
                 if (removedFromModel || removedFromVMCollection)
                 {
                     Debug.WriteLine($"Contract '{contractToRemoveVM.ContractNumber}' removed.");
-                    // La selezione si aggiornerà automaticamente perché la vista cambia
+                    // La vista si aggiorna automaticamente, la selezione potrebbe spostarsi
                 }
                 else { Debug.WriteLine($"Failed to remove contract '{contractToRemoveVM.ContractNumber}'."); }
             }
         }
-        // *** CORPO COMPLETO CanExecuteRemoveContract ***
         private bool CanExecuteRemoveContract(object? parameter)
         {
             return SelectedContract != null;
@@ -175,11 +178,10 @@ namespace WpfMvvmApp.ViewModels
             _currentUser.Contracts ??= new List<Contract>();
             _currentUser.Contracts.Add(duplicatedContractModel);
             var newContractVM = new ContractViewModel(duplicatedContractModel, _dialogService, _calService);
-            Contracts.Add(newContractVM);
-            ContractsView?.MoveCurrentTo(newContractVM);
-            SelectedContract = newContractVM;
+            Contracts.Add(newContractVM); // Aggiunge alla sorgente
+            ContractsView?.MoveCurrentTo(newContractVM); // Sposta selezione nella vista
+            SelectedContract = newContractVM; // Aggiorna proprietà
         }
-        // *** CORPO COMPLETO CanExecuteDuplicateContract ***
         private bool CanExecuteDuplicateContract(object? parameter)
         {
             return SelectedContract != null;
@@ -204,11 +206,12 @@ namespace WpfMvvmApp.ViewModels
                  else
                  {
                      Debug.WriteLine("ExecuteSaveAllData: Save reported FAILED by service (returned false).");
-                      MessageBox.Show(Resources.MsgBox_SaveError_Text ?? "Could not save user data. The save operation failed.",
-                                     Resources.MsgBox_Title_SaveError ?? "Save Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                      // Il servizio ora mostra MessageBox più specifici, quindi potremmo rimuovere questo
+                      // MessageBox.Show(Resources.MsgBox_SaveError_Text ?? "Could not save user data. The save operation failed.",
+                      //               Resources.MsgBox_Title_SaveError ?? "Save Error", MessageBoxButton.OK, MessageBoxImage.Warning);
                  }
             }
-            catch (Exception ex)
+            catch (Exception ex) // Cattura eccezioni impreviste non gestite dal servizio
             {
                  Debug.WriteLine($"ExecuteSaveAllData: UNEXPECTED Exception during save call: {ex}");
                  MessageBox.Show(string.Format(Resources.MsgBox_SaveErrorCritical_Text ?? "An unexpected error occurred while trying to save data:\n{0}", ex.Message),
@@ -223,6 +226,109 @@ namespace WpfMvvmApp.ViewModels
             Debug.WriteLine("OnApplicationExit: Saving data...");
             ExecuteSaveAllData(e);
             try { Application.Current.Exit -= OnApplicationExit; } catch { }
+        }
+
+        // --- NUOVI Metodi per Backup e Ripristino ---
+
+        private void ExecuteBackupData(object? parameter)
+        {
+            try
+            {
+                string currentDataPath = _persistenceService.GetUserDataPath();
+                if (!File.Exists(currentDataPath))
+                {
+                    MessageBox.Show("Current data file not found. Cannot create backup.",
+                                    Resources.MsgBox_Title_Backup ?? "Backup Data",
+                                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                string suggestedFileName = $"ControllOre_Backup_{DateTime.Now:yyyyMMdd_HHmmss}.json";
+                string? backupFilePath = _dialogService.ShowSaveFileDialog("JSON files (*.json)|*.json|All files (*.*)|*.*",
+                                                                          suggestedFileName,
+                                                                          Resources.BackupDataButton_Content ?? "Backup Data");
+
+                if (!string.IsNullOrEmpty(backupFilePath))
+                {
+                    if (string.Equals(Path.GetFullPath(backupFilePath), Path.GetFullPath(currentDataPath), StringComparison.OrdinalIgnoreCase))
+                    {
+                         MessageBox.Show("Backup path cannot be the same as the current data file path.",
+                                        Resources.MsgBox_Title_Backup ?? "Backup Data",
+                                        MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
+                    File.Copy(currentDataPath, backupFilePath, true);
+                    MessageBox.Show(string.Format(Resources.MsgBox_BackupSuccessful_Text ?? "Data successfully backed up to:\n{0}", backupFilePath),
+                                    Resources.MsgBox_Title_Backup ?? "Backup Data",
+                                    MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error during backup: {ex}");
+                MessageBox.Show(string.Format(Resources.MsgBox_BackupError_Text ?? "Could not create backup file:\n{0}", ex.Message),
+                                Resources.MsgBox_Title_Backup ?? "Backup Data",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ExecuteRestoreData(object? parameter)
+        {
+            var confirmationResult = MessageBox.Show(Resources.MsgBox_ConfirmRestore_Text ?? "WARNING!\nThis will overwrite your current data with the data from the selected backup file.\nThis operation cannot be undone.\n\nAre you sure you want to continue?",
+                                                     Resources.MsgBox_Title_Restore ?? "Restore Data",
+                                                     MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (confirmationResult != MessageBoxResult.Yes) return;
+
+            string? backupFilePath = _dialogService.ShowOpenFileDialog("JSON files (*.json)|*.json|All files (*.*)|*.*",
+                                                                      Resources.RestoreDataButton_Content ?? "Restore Data");
+
+            if (string.IsNullOrEmpty(backupFilePath) || !File.Exists(backupFilePath)) return;
+
+            try
+            {
+                string currentDataPath = _persistenceService.GetUserDataPath();
+
+                 if (string.Equals(Path.GetFullPath(backupFilePath), Path.GetFullPath(currentDataPath), StringComparison.OrdinalIgnoreCase))
+                 {
+                      MessageBox.Show("Restore path cannot be the same as the current data file path.",
+                                     Resources.MsgBox_Title_Restore ?? "Restore Data",
+                                     MessageBoxButton.OK, MessageBoxImage.Warning);
+                     return;
+                 }
+
+                File.Copy(backupFilePath, currentDataPath, true);
+                Debug.WriteLine($"Data file restored from: {backupFilePath}");
+
+                // Ricarica dati
+                 _currentUser = _persistenceService.LoadUserData();
+                 LoadContractsFromUserData(); // Aggiorna collezioni e vista
+
+                 MessageBox.Show(Resources.MsgBox_RestoreSuccessful_Text ?? "Data successfully restored. Application reloaded.",
+                                 Resources.MsgBox_Title_Restore ?? "Restore Data",
+                                 MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Error during restore: {ex}");
+                 MessageBox.Show(string.Format(Resources.MsgBox_RestoreError_Text ?? "Could not restore data from backup file:\n{0}", ex.Message),
+                                Resources.MsgBox_Title_Restore ?? "Restore Data",
+                                MessageBoxButton.OK, MessageBoxImage.Error);
+                 try
+                 {
+                     // Tenta di ricaricare lo stato precedente in caso di fallimento del ripristino
+                     _currentUser = _persistenceService.LoadUserData();
+                     LoadContractsFromUserData();
+                 }
+                 catch (Exception loadEx)
+                 {
+                      Debug.WriteLine($"Error reloading data after failed restore: {loadEx}");
+                       MessageBox.Show(Resources.MsgBox_RestoreLoadError_Text ?? "Data restored, but failed to reload. Please restart.",
+                                      Resources.MsgBox_Title_Restore ?? "Restore Data",
+                                      MessageBoxButton.OK, MessageBoxImage.Warning);
+                 }
+            }
         }
 
         // --- Logica per Ordinamento Contratti ---
@@ -259,6 +365,5 @@ namespace WpfMvvmApp.ViewModels
         public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) { PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName)); }
         protected bool SetProperty<T>(ref T storage, T value, [CallerMemberName] string? propertyName = null) { if (EqualityComparer<T>.Default.Equals(storage, value)) return false; storage = value; OnPropertyChanged(propertyName); return true; }
-        // --- Fine Implementazione INotifyPropertyChanged ---
     }
 }

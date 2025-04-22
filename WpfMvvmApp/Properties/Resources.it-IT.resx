@@ -408,4 +408,43 @@
   <data name="MsgBox_ImportResult_OnlySkipped_Text" xml:space="preserve">
     <value>Nessuna nuova lezione importata, {0} duplicati trovati e saltati.</value>
   </data>
+  <data name="BackupDataButton_Content" xml:space="preserve">
+    <value>Backup Dati</value>
+  </data>
+  <data name="BackupDataButton_ToolTip" xml:space="preserve">
+    <value>Salva una copia del file dati corrente.</value>
+  </data>
+  <data name="RestoreDataButton_Content" xml:space="preserve">
+    <value>Ripristina Dati</value>
+  </data>
+  <data name="RestoreDataButton_ToolTip" xml:space="preserve">
+    <value>Ripristina il file dati corrente da un backup (sovrascrive i dati correnti!)</value> 
+  </data>
+  <data name="MsgBox_Title_Backup" xml:space="preserve">
+    <value>Backup Dati</value>
+  </data>
+  <data name="MsgBox_Title_Restore" xml:space="preserve">
+    <value>Ripristina Dati</value>
+  </data>
+  <data name="MsgBox_BackupSuccessful_Text" xml:space="preserve">
+    <value>Backup dei dati eseguito con successo in:\n{0}</value>
+    <comment>{0} is the backup file path</comment>
+  </data>
+  <data name="MsgBox_BackupError_Text" xml:space="preserve">
+    <value>Impossibile creare il file di backup:\n{0}</value>
+  </data>
+  <data name="MsgBox_ConfirmRestore_Text" xml:space="preserve">
+    <value>ATTENZIONE!\nQuesto sovrascriverà i dati correnti con i dati del file di backup selezionato.\nQuesta operazione non può essere annullata.\n\nSei sicuro di voler continuare?</value>
+  </data>
+  <data name="MsgBox_RestoreSuccessful_Text" xml:space="preserve">
+    <value>Dati ripristinati con successo dal backup.\nL'applicazione verrà ora ricaricata.</value>
+  </data>
+  <data name="MsgBox_RestoreError_Text" xml:space="preserve">
+    <value>Impossibile ripristinare i dati dal backup selezionato:\n{0}</value>
+  </data>
+  <data name="MsgBox_RestoreLoadError_Text" xml:space="preserve">
+    <value>I dati sono stati ripristinati, ma si è verificato un errore durante il ricaricamento dell'applicazione.\nRiavviare l'applicazione manualmente.</value>
+  </data>
+
+
 </root>

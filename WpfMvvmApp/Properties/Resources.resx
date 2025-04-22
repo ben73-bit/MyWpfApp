@@ -430,5 +430,39 @@
   <data name="MsgBox_ImportResult_OnlySkipped_Text" xml:space="preserve">
     <value>No new lessons imported, {0} duplicates found and skipped.</value>
   </data>
+  <data name="BackupDataButton_Content" xml:space="preserve">
+    <value>Backup Data</value>
+  </data>
+  <data name="BackupDataButton_ToolTip" xml:space="preserve">
+    <value>Save a copy of the current data file. </value>
+  </data>
+  <data name="RestoreDataButton_Content" xml:space="preserve">
+    <value>Restore data from a backup file (overwrites current data!)</value>
+  </data>
+  <data name="MsgBox_Title_Backup" xml:space="preserve">
+    <value>Backup Data</value>
+  </data>
+  <data name="MsgBox_Title_Restore" xml:space="preserve">
+    <value>Restore Data</value>
+  </data>
+  <data name="MsgBox_BackupSuccessful_Text" xml:space="preserve">
+    <value>Data successfully backed up to:\n{0}</value>
+    <comment>{0} is the backup file path</comment>
+  </data>
+  <data name="MsgBox_BackupError_Text" xml:space="preserve">
+    <value>Could not create backup file:\n{0}</value>
+  </data>
+  <data name="MsgBox_ConfirmRestore_Text" xml:space="preserve">
+    <value>WARNING!\nThis will overwrite your current data with the data from the selected backup file.\nThis operation cannot be undone.\n\nAre you sure you want to continue?</value>
+  </data>
+  <data name="MsgBox_RestoreError_Text" xml:space="preserve">
+    <value>Could not restore data from backup file:\n{0}</value>
+  </data>
+  <data name="MsgBox_RestoreLoadError_Text" xml:space="preserve">
+    <value>Data was restored, but an error occurred while reloading the application.\nPlease restart the application manually.</value>
+  </data>
+
+  
+    
 
 </root>

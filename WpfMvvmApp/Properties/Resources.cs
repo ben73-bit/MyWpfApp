@@ -199,6 +199,73 @@ namespace WpfMvvmApp.Properties
         /// </summary>
         public static string? MsgBox_ImportResult_OnlySkipped_Text => GetString("MsgBox_ImportResult_OnlySkipped_Text");
         // --- Fine Proprietà Stringhe ---
+        // --- NUOVO: Messaggi per Backup/Ripristino ---
+
+        /// <summary>
+        ///   Looks up a localized string similar to Backup Data.
+        /// </summary>
+        public static string? MsgBox_Title_Backup => GetString("MsgBox_Title_Backup");
+
+        /// <summary>
+        ///   Looks up a localized string similar to Restore Data.
+        /// </summary>
+        public static string? MsgBox_Title_Restore => GetString("MsgBox_Title_Restore");
+
+        /// <summary>
+        ///   Looks up a localized string similar to Data successfully backed up to:\n{0}.
+        /// </summary>
+        public static string? MsgBox_BackupSuccessful_Text => GetString("MsgBox_BackupSuccessful_Text");
+
+        /// <summary>
+        ///   Looks up a localized string similar to Could not create backup file:\n{0}.
+        /// </summary>
+        public static string? MsgBox_BackupError_Text => GetString("MsgBox_BackupError_Text");
+
+        /// <summary>
+        ///   Looks up a localized string similar to WARNING!\nThis will overwrite your current data with the data from the selected backup file.\nThis operation cannot be undone.\n\nAre you sure you want to continue?.
+        /// </summary>
+        public static string? MsgBox_ConfirmRestore_Text => GetString("MsgBox_ConfirmRestore_Text");
+
+        /// <summary>
+        ///   Looks up a localized string similar to Data successfully restored from backup.\nThe application will now reload..
+        /// </summary>
+        public static string? MsgBox_RestoreSuccessful_Text => GetString("MsgBox_RestoreSuccessful_Text");
+
+        /// <summary>
+        ///   Looks up a localized string similar to Could not restore data from backup file:\n{0}.
+        /// </summary>
+        public static string? MsgBox_RestoreError_Text => GetString("MsgBox_RestoreError_Text");
+
+        /// <summary>
+        ///   Looks up a localized string similar to Data was restored, but an error occurred while reloading the application.\nPlease restart the application manually..
+        /// </summary>
+        public static string? MsgBox_RestoreLoadError_Text => GetString("MsgBox_RestoreLoadError_Text");
+
+        // --- Fine Messaggi Backup/Ripristino ---
+
+        // --- NUOVO: Pulsanti Backup/Ripristino ---
+
+        /// <summary>
+        ///   Looks up a localized string similar to Backup Data....
+        /// </summary>
+        public static string? BackupDataButton_Content => GetString("BackupDataButton_Content");
+
+        /// <summary>
+        ///   Looks up a localized string similar to Save a copy of the current data file.
+        /// </summary>
+        public static string? BackupDataButton_ToolTip => GetString("BackupDataButton_ToolTip");
+
+        /// <summary>
+        ///   Looks up a localized string similar to Restore Data....
+        /// </summary>
+        public static string? RestoreDataButton_Content => GetString("RestoreDataButton_Content");
+
+        /// <summary>
+        ///   Looks up a localized string similar to Restore data from a backup file (overwrites current data!).
+        /// </summary>
+        public static string? RestoreDataButton_ToolTip => GetString("RestoreDataButton_ToolTip");
+
+        // --- Fine Pulsanti Backup/Ripristino ---
 
         // Costruttore privato per prevenire istanziazione
         private Resources() { }

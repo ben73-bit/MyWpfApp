@@ -17,5 +17,6 @@ namespace WpfMvvmApp.Services
         /// <param name="user">L'oggetto User da salvare.</param>
         /// <returns>True se il salvataggio è riuscito, false altrimenti.</returns>
         bool SaveUserData(User user);
+        string GetUserDataPath(); // NUOVO METODO
     }
 }

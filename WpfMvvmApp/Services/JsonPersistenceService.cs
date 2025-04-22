@@ -1,11 +1,12 @@
 // WpfMvvmApp/Services/JsonPersistenceService.cs
 using System;
-using System.Collections.Generic; // Aggiunto per List<T>
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using WpfMvvmApp.Models;
 using System.Diagnostics;
 using System.Reflection;
+using System.Windows; // Aggiunto per MessageBox
 
 namespace WpfMvvmApp.Services
 {
@@ -18,16 +19,47 @@ namespace WpfMvvmApp.Services
         {
             WriteIndented = true,
             PropertyNameCaseInsensitive = true,
-            // ReferenceHandler = ReferenceHandler.Preserve // Utile per cicli
+            // ReferenceHandler = ReferenceHandler.Preserve // Scommenta se hai cicli di riferimento complessi
         };
 
         public JsonPersistenceService()
         {
             string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-            string appFolderName = "ControllOre";
+            // Usa un nome cartella specifico per la tua applicazione
+            string appFolderName = "ControllOreApp"; // Assicurati sia lo stesso nome usato altrove se necessario
             _saveFolderPath = Path.Combine(documentsPath, appFolderName);
             _fullPath = Path.Combine(_saveFolderPath, _saveFileName);
-            Debug.WriteLine($"Persistence Service Initialized. Save Path: {_fullPath}");
+            Debug.WriteLine($"Persistence Service Initialized. Data Path: {_fullPath}");
+
+            // Assicurati che la directory esista all'avvio
+             EnsureDataDirectoryExists();
+        }
+
+        // Metodo helper per creare la directory se non esiste
+        private void EnsureDataDirectoryExists()
+        {
+             try
+             {
+                 if (!Directory.Exists(_saveFolderPath))
+                 {
+                     Directory.CreateDirectory(_saveFolderPath);
+                     Debug.WriteLine($"Created data directory: {_saveFolderPath}");
+                 }
+             }
+             catch (Exception ex)
+             {
+                 Debug.WriteLine($"CRITICAL ERROR: Could not create data directory '{_saveFolderPath}'. Data cannot be saved or loaded reliably. Error: {ex.Message}");
+                 // Considera di mostrare un errore critico all'utente qui,
+                 // perché senza directory l'app non può funzionare correttamente.
+                 MessageBox.Show($"Fatal Error: Could not create application data folder at\n{_saveFolderPath}\n\nPlease check permissions.\n\nError: {ex.Message}",
+                                 "Initialization Error", MessageBoxButton.OK, MessageBoxImage.Error);
+             }
+        }
+
+        // NUOVO: Implementazione di GetUserDataPath
+        public string GetUserDataPath()
+        {
+            return _fullPath;
         }
 
         public User LoadUserData()
@@ -36,12 +68,13 @@ namespace WpfMvvmApp.Services
             if (!File.Exists(_fullPath))
             {
                 Debug.WriteLine("Save file not found. Returning new User.");
-                return new User { Username = "DefaultUser" };
+                return new User { Username = "DefaultUser" }; // Fornisci un utente di default
             }
             try
             {
                 string jsonString = File.ReadAllText(_fullPath);
-                 if (string.IsNullOrWhiteSpace(jsonString)) {
+                 if (string.IsNullOrWhiteSpace(jsonString))
+                 {
                      Debug.WriteLine("Loaded JSON string is empty or whitespace. Returning new User.");
                      return new User { Username = "DefaultUser" };
                  }
@@ -49,11 +82,15 @@ namespace WpfMvvmApp.Services
                 if (loadedUser != null)
                 {
                     Debug.WriteLine($"User data loaded successfully for user: {loadedUser.Username}");
+                    // Inizializza collezioni se null e collega riferimenti Contract nelle Lesson
                     loadedUser.Contracts ??= new List<Contract>();
                     foreach(var contract in loadedUser.Contracts)
                     {
                         contract.Lessons ??= new List<Lesson>();
-                        foreach(var lesson in contract.Lessons) { lesson.Contract = contract; }
+                        foreach(var lesson in contract.Lessons)
+                        {
+                            lesson.Contract = contract; // Ripristina riferimento ignorato da JsonIgnore
+                        }
                     }
                     return loadedUser;
                 }
@@ -63,10 +100,19 @@ namespace WpfMvvmApp.Services
                      return new User { Username = "DefaultUser" };
                 }
             }
-            // *** CORRETTO: Usa 'ex' nel Debug.WriteLine ***
-            catch (Exception ex)
+            catch (JsonException jsonEx)
             {
-                Debug.WriteLine($"Error loading user data from {_fullPath}: {ex.GetType().Name} - {ex.Message}"); // Usa ex
+                 Debug.WriteLine($"JSON DESERIALIZATION ERROR loading from {_fullPath}: {jsonEx.Message}");
+                 // Potresti voler informare l'utente che il file dati è corrotto
+                 MessageBox.Show($"Error reading data file. It might be corrupted.\nLoading default data.\n\nDetails: {jsonEx.Message}",
+                                 "Data Load Error", MessageBoxButton.OK, MessageBoxImage.Warning);
+                 return new User { Username = "DefaultUser" };
+            }
+            catch (Exception ex) // Altri errori (es. IO)
+            {
+                Debug.WriteLine($"ERROR loading user data from {_fullPath}: {ex.GetType().Name} - {ex.Message}");
+                 MessageBox.Show($"Could not load user data from file:\n{_fullPath}\n\nLoading default data.\n\nError: {ex.Message}",
+                                 "Data Load Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return new User { Username = "DefaultUser" };
             }
         }
@@ -75,15 +121,21 @@ namespace WpfMvvmApp.Services
         {
             if (user == null) { Debug.WriteLine("SaveUserData called with null user. Aborting."); return false; }
 
+            // Assicurati che la directory esista prima di salvare
+            EnsureDataDirectoryExists();
+            if (!Directory.Exists(_saveFolderPath))
+            {
+                 // Se EnsureDataDirectoryExists fallisce e mostra un messaggio, potremmo voler uscire qui
+                 Debug.WriteLine($"Save aborted because data directory does not exist: {_saveFolderPath}");
+                 return false; // O lanciare un'eccezione
+            }
+
+
             Debug.WriteLine($"Attempting to save user data for '{user.Username}' to: {_fullPath}");
             string? jsonString = null;
 
             try
             {
-                Debug.WriteLine($"Ensuring directory exists: {_saveFolderPath}");
-                DirectoryInfo dirInfo = Directory.CreateDirectory(_saveFolderPath);
-                Debug.WriteLine($"Directory exists or created: {dirInfo.Exists}");
-
                 Debug.WriteLine("Serializing user object...");
                 jsonString = JsonSerializer.Serialize(user, _jsonOptions);
                 Debug.WriteLine($"Serialization successful. JSON Length: {jsonString?.Length ?? -1}");
@@ -91,6 +143,7 @@ namespace WpfMvvmApp.Services
                 if (string.IsNullOrWhiteSpace(jsonString))
                 {
                     Debug.WriteLine("Serialization resulted in empty or whitespace string. Aborting save.");
+                     MessageBox.Show("Error saving data: Could not serialize user data.", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     return false;
                 }
 
@@ -105,22 +158,26 @@ namespace WpfMvvmApp.Services
             {
                  Debug.WriteLine($"!!! JSON SERIALIZATION ERROR: {jsonEx.Message}");
                  Debug.WriteLine($"   Path: {jsonEx.Path}, Line: {jsonEx.LineNumber}, Pos: {jsonEx.BytePositionInLine}");
+                  MessageBox.Show($"Error saving data (Serialization): {jsonEx.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
                  return false;
             }
             catch (UnauthorizedAccessException authEx)
             {
                  Debug.WriteLine($"!!! UNAUTHORIZED ACCESS ERROR saving to {_fullPath}: {authEx.Message}");
+                  MessageBox.Show($"Error saving data: Access denied to path\n{_fullPath}\n\nPlease check permissions.", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
                  return false;
             }
             catch (IOException ioEx)
             {
                  Debug.WriteLine($"!!! IO ERROR saving to {_fullPath}: {ioEx.Message}");
+                  MessageBox.Show($"Error saving data (File IO): {ioEx.Message}\nCheck disk space or if file is in use.", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
                  return false;
             }
             catch (Exception ex)
             {
                 Debug.WriteLine($"!!! UNEXPECTED ERROR during save to {_fullPath}: {ex.GetType().Name} - {ex.Message}");
                 Debug.WriteLine($"   Stack Trace: {ex.StackTrace}");
+                 MessageBox.Show($"An unexpected error occurred while saving data:\n{ex.Message}", "Save Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 return false;
             }
         }
